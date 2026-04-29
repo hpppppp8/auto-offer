@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>岗位信息</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .job-header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .job-header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .job-header .job-code {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #11998e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .salary-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .salary-group input {
+            flex: 1;
+        }
+
+        .salary-group span {
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .requirements-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .requirement-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .requirement-item input {
+            flex: 1;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .btn-add:hover {
+            background: #c8e6c9;
+        }
+
+        .btn-remove {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .btn-remove:hover {
+            background: #ffcdd2;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .tag:hover {
+            background: #c8e6c9;
+        }
+
+        .tag.active {
+            background: #11998e;
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .status-option input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>岗位信息</h1>
+        
+        <div class="job-header">
+            <h2>新增岗位</h2>
+            <div class="job-code">岗位编码: JOB-2024-001</div>
+        </div>
+
+        <form id="jobForm">
+            <div class="form-group">
+                <label for="jobName">岗位名称</label>
+                <input type="text" id="jobName" name="jobName" placeholder="请输入岗位名称">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="department">所属部门</label>
+                    <select id="department" name="department">
+                        <option value="">请选择部门</option>
+                        <option value="tech">技术部</option>
+                        <option value="product">产品部</option>
+                        <option value="design">设计部</option>
+                        <option value="marketing">市场部</option>
+                        <option value="sales">销售部</option>
+                        <option value="hr">人力资源部</option>
+                        <option value="finance">财务部</option>
+                        <option value="operations">运营部</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="jobType">岗位类型</label>
+                    <select id="jobType" name="jobType">
+                        <option value="">请选择类型</option>
+                        <option value="full_time">全职</option>
+                        <option value="part_time">兼职</option>
+                        <option value="intern">实习</option>
+                        <option value="contract">合同制</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="salaryMin">最低薪资</label>
+                    <div class="salary-group">
+                        <input type="number" id="salaryMin" name="salaryMin" placeholder="0">
+                        <span>元/月</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="salaryMax">最高薪资</label>
+                    <div class="salary-group">
+                        <input type="number" id="salaryMax" name="salaryMax" placeholder="0">
+                        <span>元/月</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label for="headcount">招聘人数</label>
+                    <input type="number" id="headcount" name="headcount" placeholder="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="experience">经验要求</label>
+                    <select id="experience" name="experience">
+                        <option value="">请选择</option>
+                        <option value="none">不限</option>
+                        <option value="1">1年以内</option>
+                        <option value="1-3">1-3年</option>
+                        <option value="3-5">3-5年</option>
+                        <option value="5-10">5-10年</option>
+                        <option value="10+">10年以上</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="education">学历要求</label>
+                    <select id="education" name="education">
+                        <option value="">请选择</option>
+                        <option value="none">不限</option>
+                        <option value="college">大专</option>
+                        <option value="bachelor">本科</option>
+                        <option value="master">硕士</option>
+                        <option value="doctor">博士</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>工作标签</label>
+                <div class="tag-group">
+                    <span class="tag active">五险一金</span>
+                    <span class="tag">带薪年假</span>
+                    <span class="tag">弹性工作</span>
+                    <span class="tag">餐补</span>
+                    <span class="tag">交通补贴</span>
+                    <span class="tag">年终奖</span>
+                    <span class="tag">股票期权</span>
+                    <span class="tag">定期体检</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>岗位要求</label>
+                <div class="requirements-list" id="requirementsList">
+                    <div class="requirement-item">
+                        <input type="text" name="requirements[]" placeholder="请输入岗位要求">
+                        <button type="button" class="btn-icon btn-add" onclick="addRequirement()">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">岗位描述</label>
+                <textarea id="description" name="description" placeholder="请输入岗位详细描述"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="publishDate">发布日期</label>
+                    <input type="date" id="publishDate" name="publishDate">
+                </div>
+                <div class="form-group">
+                    <label for="deadline">截止日期</label>
+                    <input type="date" id="deadline" name="deadline">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>岗位状态</label>
+                <div class="status-group">
+                    <label class="status-option">
+                        <input type="radio" name="status" value="active" checked>
+                        <span>招聘中</span>
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" name="status" value="paused">
+                        <span>已暂停</span>
+                    </label>
+                    <label class="status-option">
+                        <input type="radio" name="status" value="closed">
+                        <span>已关闭</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn-primary">保存岗位</button>
+                <button type="reset" class="btn-secondary">重置</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 标签切换
+        document.querySelectorAll('.tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // 添加岗位要求
+        function addRequirement() {
+            const list = document.getElementById('requirementsList');
+            const item = document.createElement('div');
+            item.className = 'requirement-item';
+            item.innerHTML = `
+                <input type="text" name="requirements[]" placeholder="请输入岗位要求">
+                <button type="button" class="btn-icon btn-remove" onclick="removeRequirement(this)">-</button>
+            `;
+            list.appendChild(item);
+        }
+
+        // 删除岗位要求
+        function removeRequirement(btn) {
+            btn.parentElement.remove();
+        }
+
+        // 表单提交
+        document.getElementById('jobForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // 获取选中的标签
+            const tags = Array.from(document.querySelectorAll('.tag.active')).map(t => t.textContent);
+            data.tags = tags;
+            
+            console.log('岗位信息：', data);
+            alert('岗位信息保存成功！');
+        });
+
+        // 设置默认日期
+        document.getElementById('publishDate').valueAsDate = new Date();
+    </script>
+</body>
+</html>
