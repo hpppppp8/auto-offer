@@ -29,14 +29,14 @@ class Job(Base):
     company_id = Column(Integer, ForeignKey('companies.id'), comment='关联公司ID')
     company_name = Column(String(256), default='', index=True, comment='公司名称（冗余字段，方便直接查看）')
 
-    salary_raw = Column(String(64), default='', comment='原始薪资（如 15k-25k*15薪 / 面议 / 300-500/天）')
+    salary = Column(String(64), default='', comment='原始薪资（如 15k-25k*15薪 / 面议 / 300-500/天）')
     salary_type = Column(String(16), default='', comment='薪资类型：月薪/日薪/时薪/面议')
 
-    experience_raw = Column(String(32), default='', comment='经验要求')
-    education_raw = Column(String(16), default='', comment='学历要求')
+    experience = Column(String(32), default='', comment='经验要求')
+    education = Column(String(16), default='', comment='学历要求')
 
     description = Column(Text, default='', comment='岗位描述')
-    location_raw = Column(String(128), default='', comment='工作地点')
+    location = Column(String(128), default='', comment='工作地点')
     benefits = Column(Text, default='', comment='福利待遇')
 
     url = Column(String(512), nullable=False, unique=True, comment='岗位详情页URL')
