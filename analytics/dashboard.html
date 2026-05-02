@@ -7,84 +7,201 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #1a1a2e; }
-.header { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: #fff; padding: 28px 40px; }
-.header h1 { font-size: 28px; font-weight: 600; letter-spacing: 1px; }
-.header .sub { font-size: 14px; opacity: 0.75; margin-top: 6px; }
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 24px 40px; margin-top: -16px; }
-.stat-card { background: #fff; border-radius: 12px; padding: 22px 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.stat-card .label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
-.stat-card .value { font-size: 32px; font-weight: 700; color: #1a237e; }
-.stat-card .unit { font-size: 14px; color: #9ca3af; margin-left: 4px; }
-.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 40px 24px; }
-.chart-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.chart-card h3 { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 12px; }
-.chart-box { width: 100%; height: 360px; }
-.chart-box.tall { height: 420px; }
+:root {
+  --bg: #f5f6fa;
+  --card: #fff;
+  --text: #1e293b;
+  --muted: #94a3b8;
+  --accent: #6366f1;
+  --accent2: #8b5cf6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+  --sky: #0ea5e9;
+  --radius: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  color: #e2e8f0; padding: 32px 24px; z-index: 10;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sidebar .logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; margin-bottom: 28px; }
+.sidebar .logo span { background: linear-gradient(135deg, #818cf8, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.sidebar .nav-item {
+  padding: 10px 14px; border-radius: 10px; font-size: 14px; cursor: pointer;
+  transition: all .2s; color: #94a3b8; display: flex; align-items: center; gap: 10px;
+}
+.sidebar .nav-item:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
+.sidebar .nav-item.active { background: rgba(99,102,241,.2); color: #a5b4fc; font-weight: 500; }
+.sidebar .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sidebar .nav-dot.a { background: var(--accent); }
+.sidebar .nav-dot.b { background: var(--green); }
+.sidebar .nav-dot.c { background: var(--amber); }
+.sidebar .nav-dot.d { background: var(--sky); }
+.sidebar .nav-dot.e { background: var(--accent2); }
+.sidebar .nav-dot.f { background: var(--rose); }
+.sidebar .nav-dot.g { background: #ec4899; }
+
+/* ── Main content ─────────────────────────────────────────── */
+.main { margin-left: 240px; padding: 32px 36px 24px; }
+
+/* ── Top bar ──────────────────────────────────────────────── */
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+.topbar h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
+.topbar .breadcrumb { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.topbar .refresh { font-size: 12px; color: var(--muted); background: var(--card); border: 1px solid #e2e8f0; padding: 6px 16px; border-radius: 20px; }
+
+/* ── Stats row ────────────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); position: relative; overflow: hidden;
+  transition: transform .15s, box-shadow .15s; cursor: default;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.stat-card .icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; }
+.stat-card .icon.blue { background: #eef2ff; }
+.stat-card .icon.green { background: #ecfdf5; }
+.stat-card .icon.amber { background: #fffbeb; }
+.stat-card .icon.purple { background: #f5f3ff; }
+.stat-card .label { font-size: 12.5px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.stat-card .value { font-size: 30px; font-weight: 700; color: #0f172a; letter-spacing: -.5px; }
+.stat-card .unit { font-size: 14px; color: #94a3b8; font-weight: 400; margin-left: 3px; }
+.stat-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.stat-card.c1::after { background: var(--accent); }
+.stat-card.c2::after { background: var(--green); }
+.stat-card.c3::after { background: var(--amber); }
+.stat-card.c4::after { background: var(--accent2); }
+
+/* ── Charts grid ──────────────────────────────────────────── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+.chart-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); transition: box-shadow .15s;
+}
+.chart-card:hover { box-shadow: var(--shadow-lg); }
+.chart-card h3 { font-size: 15px; font-weight: 600; color: #334155; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.chart-card h3::before { content: ''; width: 4px; height: 16px; border-radius: 2px; flex-shrink: 0; }
+.chart-card:nth-child(1) h3::before { background: var(--accent); }
+.chart-card:nth-child(2) h3::before { background: var(--green); }
+.chart-card:nth-child(3) h3::before { background: var(--amber); }
+.chart-card:nth-child(4) h3::before { background: var(--sky); }
+.chart-card:nth-child(5) h3::before { background: var(--accent2); }
+.chart-card:nth-child(6) h3::before { background: var(--rose); }
+.chart-card:nth-child(7) h3::before { background: var(--accent); }
+.chart-box { width: 100%; height: 340px; }
+.chart-box.tall { height: 400px; }
 .full-row { grid-column: 1 / -1; }
-.footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 12px; }
+
+/* ── Footer ───────────────────────────────────────────────── */
+.footer { text-align: center; padding: 16px; color: var(--muted); font-size: 12px; border-top: 1px solid #e2e8f0; margin-top: 8px; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<div class="header">
+
+<!-- ── Sidebar ──────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo"><span>Auto Offer</span> 分析</div>
+  <div class="nav-item active"><span class="nav-dot a"></span>总览仪表盘</div>
+  <div class="nav-item"><span class="nav-dot b"></span>薪资分析</div>
+  <div class="nav-item"><span class="nav-dot c"></span>经验与学历</div>
+  <div class="nav-item"><span class="nav-dot d"></span>公司分布</div>
+  <div class="nav-item"><span class="nav-dot e"></span>关键词洞察</div>
+  <div class="nav-item"><span class="nav-dot f"></span>散点对比</div>
+</aside>
+
+<!-- ── Main ─────────────────────────────────────────────────── -->
+<div class="main">
+
+<div class="topbar">
+  <div>
     <h1>岗位数据分析仪表盘</h1>
-    <div class="sub">基于 241 条岗位数据 · 生成于 2026-05-02 17:00:31</div>
+    <div class="breadcrumb">BOSS直聘 · 基于 241 条岗位数据 · 更新于 2026-05-02 22:25:58</div>
+  </div>
 </div>
 
 <div class="stats-row">
-    <div class="stat-card">
-        <div class="label">总岗位数</div>
-        <div class="value">241<span class="unit">条</span></div>
-    </div>
-    <div class="stat-card">
-        <div class="label">覆盖公司</div>
-        <div class="value">228<span class="unit">家</span></div>
-    </div>
-    <div class="stat-card">
-        <div class="label">月薪岗位均价</div>
-        <div class="value">8.4<span class="unit">K</span></div>
-    </div>
-    <div class="stat-card">
-        <div class="label">月薪岗位数量</div>
-        <div class="value">185<span class="unit">条</span></div>
-    </div>
+  <div class="stat-card c1">
+    <div class="icon blue">📋</div>
+    <div class="label">总岗位数</div>
+    <div class="value">241<span class="unit">条</span></div>
+  </div>
+  <div class="stat-card c2">
+    <div class="icon green">🏢</div>
+    <div class="label">覆盖公司</div>
+    <div class="value">228<span class="unit">家</span></div>
+  </div>
+  <div class="stat-card c3">
+    <div class="icon amber">💰</div>
+    <div class="label">月薪岗位均价</div>
+    <div class="value">8.4<span class="unit">K</span></div>
+  </div>
+  <div class="stat-card c4">
+    <div class="icon purple">📊</div>
+    <div class="label">月薪岗位数量</div>
+    <div class="value">185<span class="unit">条</span></div>
+  </div>
 </div>
 
 <div class="charts-grid">
-    <div class="chart-card">
-        <h3>薪资分布</h3>
-        <div class="chart-box" id="chart-salary"></div>
-    </div>
-    <div class="chart-card">
-        <h3>经验要求</h3>
-        <div class="chart-box" id="chart-exp"></div>
-    </div>
-    <div class="chart-card">
-        <h3>学历要求</h3>
-        <div class="chart-box" id="chart-edu"></div>
-    </div>
-    <div class="chart-card">
-        <h3>薪资类型</h3>
-        <div class="chart-box" id="chart-type"></div>
-    </div>
-    <div class="chart-card">
-        <h3>热门公司 TOP15</h3>
-        <div class="chart-box tall" id="chart-company"></div>
-    </div>
-    <div class="chart-card">
-        <h3>岗位关键词</h3>
-        <div class="chart-box tall" id="chart-wordcloud"></div>
-    </div>
-    <div class="chart-card full-row">
-        <h3>薪资 vs 经验</h3>
-        <div class="chart-box" id="chart-scatter" style="height:420px"></div>
-    </div>
+  <div class="chart-card">
+    <h3>薪资分布</h3>
+    <div class="chart-box" id="chart-salary"></div>
+  </div>
+  <div class="chart-card">
+    <h3>经验要求</h3>
+    <div class="chart-box" id="chart-exp"></div>
+  </div>
+  <div class="chart-card">
+    <h3>学历要求</h3>
+    <div class="chart-box" id="chart-edu"></div>
+  </div>
+  <div class="chart-card">
+    <h3>薪资类型</h3>
+    <div class="chart-box" id="chart-type"></div>
+  </div>
+  <div class="chart-card">
+    <h3>热门公司 TOP15</h3>
+    <div class="chart-box tall" id="chart-company"></div>
+  </div>
+  <div class="chart-card">
+    <h3>岗位关键词</h3>
+    <div class="chart-box tall" id="chart-wordcloud"></div>
+  </div>
+  <div class="chart-card full-row">
+    <h3>薪资 vs 经验</h3>
+    <div class="chart-box" id="chart-scatter" style="height:400px"></div>
+  </div>
 </div>
 
-<div class="footer">Auto Offer Analytics · 数据来源：BOSS直聘</div>
+<div class="footer">Auto Offer Analytics · 数据来源：BOSS直聘 · 仅供参考</div>
+
+</div>
 
 <script>
+// ── Chart color palette ──────────────────────────────────────
+var C = ['#6366f1','#10b981','#f59e0b','#0ea5e9','#8b5cf6','#f43f5e','#ec4899','#14b8a6','#f97316','#6366f1'];
 var salaryBins = {"0-3k": 5, "3-5k": 20, "5-8k": 91, "8-12k": 50, "12-18k": 9, "18-25k": 4, "25k+": 6};
 var expDist = {"5-10年": 7, "在校/应届": 5, "1-3年": 79, "未知": 29, "3-5年": 36, "经验不限": 85};
 var eduDist = {"硕士": 1, "未知": 8, "本科": 79, "高中": 10, "学历不限": 37, "大专": 105, "初中及以下": 1};
@@ -94,93 +211,99 @@ var topWords = [["标注", 756], ["工作", 548], ["数据", 514], ["能力", 31
 var scatterData = [{"salary": 4.0, "experience": "未知", "title": "数据标注专员", "company": "众轩科技"}, {"salary": 4.5, "experience": "经验不限", "title": "视频描述标注员（影视/文学方向）", "company": "创焱智科"}, {"salary": 10.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "一土咨询"}, {"salary": 2.0, "experience": "经验不限", "title": "方言语音标注（台州）", "company": "浩弋信"}, {"salary": 7.0, "experience": "经验不限", "title": "居家大数据收集", "company": "台州市力州气动工具"}, {"salary": 6.5, "experience": "1-3年", "title": "数据统计专员", "company": "台州众瑞科技有限公司"}, {"salary": 8.5, "experience": "经验不限", "title": "数据标注/ai训练师", "company": "杭州黉门翘楚教育咨询"}, {"salary": 75.0, "experience": "经验不限", "title": "贷款数据孵化师 台州经理 在家办公月入10万", "company": "未来已至"}, {"salary": 8.0, "experience": "1-3年", "title": "数据标注员/金融数据处理员", "company": "杭州叁通锦鸿信息科技"}, {"salary": 6.5, "experience": "1-3年", "title": "数据/策略运营", "company": "盈融"}, {"salary": 9.0, "experience": "1-3年", "title": "ai数据标注", "company": "杭州广荀科技有限公司"}, {"salary": 12.5, "experience": "1-3年", "title": "外贸业务员（无需自己开发+标注为底薪）（出差美国等）", "company": "台州卡拉米罗眼镜"}, {"salary": 6.0, "experience": "经验不限", "title": "ai数据标注员", "company": "杭州仓颉智能科技产业"}, {"salary": 7.8, "experience": "经验不限", "title": "数据线装盒子30/小时长白班人走账清", "company": ""}, {"salary": 6.5, "experience": "1-3年", "title": "To B外贸大数据软件销售（双休+国企背景）", "company": "特易资讯"}, {"salary": 10.0, "experience": "1-3年", "title": "ai数据标注", "company": "安阳启阳信息技术服务"}, {"salary": 5.5, "experience": "经验不限", "title": "数据信息员", "company": "顺丰速运"}, {"salary": 5.5, "experience": "经验不限", "title": "数据/策略运营", "company": "台州市欢扬眼镜"}, {"salary": 3.5, "experience": "在校/应届", "title": "数据标注专员/接受无经验/双休", "company": "景烁科技"}, {"salary": 7.5, "experience": "经验不限", "title": "市场专员（大平台、B端大客户、AI大数据）", "company": "企知道大数据科技"}, {"salary": 6.0, "experience": "3-5年", "title": "数据统计员", "company": "新荣发"}, {"salary": 7.0, "experience": "经验不限", "title": "数据质检专员", "company": "雷博人力资"}, {"salary": 10.5, "experience": "1-3年", "title": "大数据项目经理", "company": "新疆政隆电气有限公司"}, {"salary": 6.5, "experience": "5-10年", "title": "仓库数据员", "company": "浙江泰和纺织机械"}, {"salary": 4.0, "experience": "经验不限", "title": "团队二把手 数据资料员", "company": "台州昌强商务咨询"}, {"salary": 7.0, "experience": "未知", "title": "数据标注质检员", "company": "中电金信"}, {"salary": 5.5, "experience": "3-5年", "title": "数据/策略运营", "company": "台州市讯诚电子商务"}, {"salary": 3.5, "experience": "经验不限", "title": "数据采集", "company": "台州市旭能光伏安装"}, {"salary": 4.5, "experience": "经验不限", "title": "数据采集（实习生亦可）", "company": "柔川信息"}, {"salary": 4.5, "experience": "未知", "title": "数据分析师", "company": "三峰家电"}, {"salary": 5.5, "experience": "1-3年", "title": "房地产数据专员", "company": "万洋众创城投资集团"}, {"salary": 5.5, "experience": "5-10年", "title": "财务数据统计员", "company": "高朋物流"}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "杏豪"}, {"salary": 5.0, "experience": "1-3年", "title": "大数据采集员", "company": "十月如初健康"}, {"salary": 5.5, "experience": "经验不限", "title": "急招6k/月AI数据标注员长白班坐班六休一", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "数据分析师", "company": "台州湾新区北部湾..."}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注员", "company": "阿里巴巴集团"}, {"salary": 7.5, "experience": "1-3年", "title": "数据仓管员", "company": "汇精制泵"}, {"salary": 4.5, "experience": "经验不限", "title": "ai训练师接受小白", "company": "越沪"}, {"salary": 5.5, "experience": "1-3年", "title": "ai本地数据资料库管理员", "company": "天台匠隐工艺品加工部"}, {"salary": 7.5, "experience": "经验不限", "title": "数据整理专员", "company": "卯梦信息科技公司"}, {"salary": 4.5, "experience": "经验不限", "title": "数据分析师", "company": "明途教育集团"}, {"salary": 5.5, "experience": "1-3年", "title": "5-6k招数据分析专员", "company": "快送熊"}, {"salary": 9.5, "experience": "经验不限", "title": "软件销售【AI+科创+B端大数据】", "company": "宁波立明"}, {"salary": 30.0, "experience": "3-5年", "title": "数据平台工程师（前端软件开发方向）", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "办公室文员/数据统计员", "company": "温岭市韵通快递有..."}, {"salary": 5.5, "experience": "1-3年", "title": "5000-6000招数据分析管培生", "company": "快送熊"}, {"salary": 5.0, "experience": "1-3年", "title": "聚水潭erp数据统计文员", "company": "棉品世家"}, {"salary": 7.0, "experience": "3-5年", "title": "销售合同与售后数据专员", "company": "上海海桦新材料"}, {"salary": 9.5, "experience": "未知", "title": "数据标注", "company": "晖荣宜科技"}, {"salary": 7.5, "experience": "经验不限", "title": "数据标注", "company": "浙江中跃阳智慧科技"}, {"salary": 6.0, "experience": "1-3年", "title": "数据标注项目经理", "company": "杭州星聚数智科技"}, {"salary": 15.5, "experience": "1-3年", "title": "电商商品标注质检（大厂早九晚六周末双休", "company": "北京外企德科人力..."}, {"salary": 2.2, "experience": "经验不限", "title": "大数据开发", "company": "台州市丘宇电子商务"}, {"salary": 6.0, "experience": "未知", "title": "数据标注师~无经验要求", "company": "宿迁易智盛科技"}, {"salary": 8.5, "experience": "3-5年", "title": "数据地图标注", "company": "杭州云端视界科技"}, {"salary": 9.5, "experience": "1-3年", "title": "大数据算法工程师", "company": "伟星股份"}, {"salary": 5.5, "experience": "经验不限", "title": "数据文员", "company": "叮咚买菜"}, {"salary": 25.0, "experience": "3-5年", "title": "信息数据智能部经理", "company": "浙江弘达"}, {"salary": 7.0, "experience": "经验不限", "title": "方言or普通话数据标注师", "company": "阿里巴巴集团"}, {"salary": 6.5, "experience": "1-3年", "title": "大数据工程师", "company": "加新国际(台州)"}, {"salary": 6.5, "experience": "1-3年", "title": "数据运营专员", "company": "上海旗胜胜信息咨询"}, {"salary": 8.5, "experience": "1-3年", "title": "数据标注/ai训练师", "company": "与问职趣"}, {"salary": 12.5, "experience": "3-5年", "title": "大数据运维（线上面试）", "company": "润和软件"}, {"salary": 4.5, "experience": "经验不限", "title": "数据信息员", "company": "顺丰"}, {"salary": 10.0, "experience": "3-5年", "title": "数据分析员", "company": "公元股份"}, {"salary": 7.0, "experience": "1-3年", "title": "AI应用测试专员", "company": "台州市爱上淘品牌管理"}, {"salary": 7.0, "experience": "3-5年", "title": "数据项目组长", "company": "台州智行妙蛙信息科技"}, {"salary": 9.5, "experience": "经验不限", "title": "数据分析", "company": "浙江宇嘉"}, {"salary": 8.5, "experience": "3-5年", "title": "数据与资料管理专员", "company": "利欧集团"}, {"salary": 11.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "鸣谦望潮"}, {"salary": 10.5, "experience": "1-3年", "title": "AI数据标注师", "company": "道然进出口"}, {"salary": 5.5, "experience": "1-3年", "title": "数据/策略运营", "company": "天台县宏庆家电商行"}, {"salary": 17.0, "experience": "1-3年", "title": "数据标注/AI训练师-线上面试反馈快", "company": "捷科智诚"}, {"salary": 4.5, "experience": "1-3年", "title": "AI信贷数据标注/早九晚六/周末双休", "company": "博彦科技"}, {"salary": 8.5, "experience": "经验不限", "title": "标注质检（周末双休）", "company": "中软国际"}, {"salary": 8.5, "experience": "1-3年", "title": "ai数据标注员", "company": "南昌辰睿"}, {"salary": 6.5, "experience": "经验不限", "title": "数据标注专员", "company": "杭州众智为马科技"}, {"salary": 10.0, "experience": "1-3年", "title": "AI数据标注师（AI打标人员）", "company": "道弗科技"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注客户经理", "company": "杭州聚商企信息服务"}, {"salary": 10.0, "experience": "经验不限", "title": "数据标注/ai训练师", "company": "长鹰控股"}, {"salary": 7.5, "experience": "1-3年", "title": "系统运维工程师—台州", "company": "华云科技"}, {"salary": 6.5, "experience": "1-3年", "title": "idc机房运维工程师", "company": "杭数人才"}, {"salary": 7.0, "experience": "3-5年", "title": "管廊运维员（台州）", "company": "创搏控股"}, {"salary": 8.0, "experience": "1-3年", "title": "ai训练师", "company": "润和软件"}, {"salary": 4.5, "experience": "经验不限", "title": "物联网系统运维岗", "company": "非普软件"}, {"salary": 6.5, "experience": "1-3年", "title": "台州表库运维", "company": "杭州恒胜科技"}, {"salary": 6.5, "experience": "经验不限", "title": "网络运维初级工程师（双休五险一金项目奖）", "company": "台州檀雅网络科技"}, {"salary": 7.5, "experience": "1-3年", "title": "数据标注专员", "company": "宇途汽车"}, {"salary": 10.0, "experience": "5-10年", "title": "配电运维工程师", "company": "易阳新能源科技"}, {"salary": 9.5, "experience": "1-3年", "title": "服务器运维工程师", "company": "星峰科技"}, {"salary": 5.0, "experience": "经验不限", "title": "运维工程师", "company": "博俏电脑"}, {"salary": 7.5, "experience": "经验不限", "title": "视觉运维工程师", "company": "伟星股份"}, {"salary": 25.0, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "杭州云通物业有限公司"}, {"salary": 7.5, "experience": "1-3年", "title": "运维工程师", "company": "大阳龙摄影"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注平台经理", "company": "博斐信息技术"}, {"salary": 27.5, "experience": "3-5年", "title": "网络运维-银行", "company": ""}, {"salary": 9.5, "experience": "3-5年", "title": "桌面运维工程师", "company": "地通控股集团"}, {"salary": 8.5, "experience": "1-3年", "title": "项目数据标注", "company": "杭州筑鼎建筑工程设计"}, {"salary": 8.5, "experience": "3-5年", "title": "运维工程师", "company": "吉奥时空"}, {"salary": 10.0, "experience": "3-5年", "title": "实施运维工程师", "company": "浙江康邻科技有限公司"}, {"salary": 6.5, "experience": "未知", "title": "运维工程师", "company": "米力"}, {"salary": 10.5, "experience": "1-3年", "title": "运维工程师", "company": "优思贝日用品"}, {"salary": 4.5, "experience": "在校/应届", "title": "运维工程师", "company": "意派装饰公司"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "广州云销文化传媒"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师", "company": "杭州诚莘科技有限公司"}, {"salary": 5.5, "experience": "3-5年", "title": "运维工程师", "company": "冬嘻企业管理"}, {"salary": 12.0, "experience": "经验不限", "title": "云平台运维", "company": "润和软件"}, {"salary": 6.0, "experience": "1-3年", "title": "运维工程师", "company": "一松环境"}, {"salary": 9.5, "experience": "1-3年", "title": "AI工程师", "company": "小耳朵科技"}, {"salary": 6.0, "experience": "未知", "title": "运维", "company": "浙江星树科技有限公司"}, {"salary": 5.5, "experience": "经验不限", "title": "运维工程师", "company": "安徽博思锐信息科技"}, {"salary": 5.5, "experience": "3-5年", "title": "运维工程师（台州临海）", "company": "绿洁环境科技"}, {"salary": 10.5, "experience": "1-3年", "title": "it运维工程师", "company": "上海雷博司电气"}, {"salary": 5.0, "experience": "经验不限", "title": "运维工程师", "company": "中建智能"}, {"salary": 7.0, "experience": "1-3年", "title": "BI运维工程师", "company": "浙江春歌控股"}, {"salary": 11.0, "experience": "3-5年", "title": "运维工程师", "company": "助力"}, {"salary": 12.5, "experience": "3-5年", "title": "硬件运维工程师（正编岗位）", "company": "追觅科技"}, {"salary": 9.0, "experience": "5-10年", "title": "plc电气工程师", "company": "皮休"}, {"salary": 6.5, "experience": "1-3年", "title": "充电桩运维", "company": "奥王时代科技有限公司"}, {"salary": 19.0, "experience": "1-3年", "title": "移动机器人系统运维工程师", "company": "浙江旗鱼"}, {"salary": 9.0, "experience": "3-5年", "title": "运维班长", "company": "甬坤"}, {"salary": 0.8, "experience": "3-5年", "title": "运维工程师", "company": "台州麦迪环保"}, {"salary": 5.5, "experience": "经验不限", "title": "海康 数据标注 长白班 坐班 工作轻松", "company": "海康威视"}, {"salary": 20.0, "experience": "1-3年", "title": "ai数据标注师/模型评测（互联网大厂）", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "运维工程师", "company": "台升智能输送"}, {"salary": 6.5, "experience": "在校/应届", "title": "it助理工程师（26届校园招聘）（出差泰国等）", "company": "加德凡兴"}, {"salary": 6.5, "experience": "未知", "title": "运维工程师（台州生态环保局）", "company": "云景科技"}, {"salary": 12.0, "experience": "3-5年", "title": "自动化工程师", "company": "三禾工业"}, {"salary": 7.0, "experience": "经验不限", "title": "运维辅助（台州外包）", "company": "环茂自控"}, {"salary": 8.0, "experience": "3-5年", "title": "光伏运维电工", "company": "台州锐博新能源"}, {"salary": 12.0, "experience": "3-5年", "title": "IT工程师", "company": "嘉合劲威"}, {"salary": 10.5, "experience": "3-5年", "title": "运维工程师", "company": "云砥"}, {"salary": 4.5, "experience": "1-3年", "title": "（居家）数学数据标注 / 双休+朝九晚六", "company": "月奕"}, {"salary": 7.0, "experience": "1-3年", "title": "运维工程师", "company": "谱育科技"}, {"salary": 9.0, "experience": "3-5年", "title": "中级系统运维（浙江三门）", "company": "国科科技"}, {"salary": 7.5, "experience": "3-5年", "title": "综合运维工程师", "company": "美创科技"}, {"salary": 6.5, "experience": "3-5年", "title": "数据标注", "company": "北京新界永恒科技"}, {"salary": 10.0, "experience": "经验不限", "title": "【数据标注专员】+五险+双休+朝九晚六", "company": "程胜科技"}, {"salary": 9.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "杭州杭桥科技有限公司"}, {"salary": 8.5, "experience": "1-3年", "title": "运维工程师", "company": "台州星展文化传播"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师（台州）", "company": "聚光"}, {"salary": 7.0, "experience": "1-3年", "title": "网络工程师", "company": "天颂建设"}, {"salary": 3.5, "experience": "1-3年", "title": "共享充电宝运维员", "company": "帝益"}, {"salary": 9.0, "experience": "3-5年", "title": "网络安全运维工程师", "company": "中能汇科"}, {"salary": 7.0, "experience": "1-3年", "title": "运维", "company": "浙江城停畅联智能..."}, {"salary": 4.5, "experience": "1-3年", "title": "运维工程师（浙江天台）", "company": "湖北科普特智能科技"}, {"salary": 7.5, "experience": "3-5年", "title": "数据标注文员（固定双休，节假日正常）", "company": "杭州松辉科技有限公司"}, {"salary": 10.0, "experience": "1-3年", "title": "ERP运维工程师", "company": "铭都进出口"}, {"salary": 6.0, "experience": "1-3年", "title": "运维工程师", "company": "超科软件"}, {"salary": 2.5, "experience": "经验不限", "title": "三门县运维工程师", "company": "惠尔丰"}, {"salary": 4.0, "experience": "在校/应届", "title": "运维工程师", "company": "台州市节点科技"}, {"salary": 8.0, "experience": "1-3年", "title": "项目交付及运维工程师（驻台州三门项目部）", "company": "领泽合希信息技术"}, {"salary": 12.0, "experience": "5-10年", "title": "ERP运维开发工程师", "company": "金鸿"}, {"salary": 5.5, "experience": "在校/应届", "title": "光伏电站运维工程师", "company": "金芝麻新能源"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师（网络方向+监狱客户）", "company": "融至兴科技"}, {"salary": 6.0, "experience": "1-3年", "title": "数据标注/ai训练师", "company": "厚德科技"}, {"salary": 4.5, "experience": "经验不限", "title": "医疗数据标注员", "company": "杭州星引教育科技"}, {"salary": 5.5, "experience": "1-3年", "title": "数据标注（早九晚六双休/无销售/五险一金）", "company": "易宝软件"}, {"salary": 10.0, "experience": "3-5年", "title": "数据标注/AI训练师", "company": "杭州博陆信息科技有限公司"}, {"salary": 7.0, "experience": "3-5年", "title": "数据标注", "company": "杭州城市大脑联合..."}, {"salary": 4.5, "experience": "经验不限", "title": "网络安全运维", "company": "台州华峰"}, {"salary": 10.5, "experience": "未知", "title": "plc工程师", "company": "台州易佳自动化"}, {"salary": 5.5, "experience": "1-3年", "title": "电商数据标注员", "company": "北京软通动力云计..."}, {"salary": 7.0, "experience": "1-3年", "title": "ai数据标注员", "company": "杭州在水一芳影视..."}, {"salary": 5.0, "experience": "经验不限", "title": "数据标注专员", "company": "滨电"}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注专员", "company": "贝尔利科技"}, {"salary": 7.0, "experience": "经验不限", "title": "用户体验&数据标注-8K-五险一金-双休", "company": "上海勤穆网络科技"}, {"salary": 6.0, "experience": "3-5年", "title": "数据标注员", "company": "杭州谱蓝科技有限公司"}, {"salary": 5.5, "experience": "1-3年", "title": "数据标注专员", "company": "菌群文化"}, {"salary": 24.0, "experience": "3-5年", "title": "数据标注/AI训练师", "company": "蜜图公司"}, {"salary": 5.5, "experience": "经验不限", "title": "AI数据标注工程师", "company": "昆仑时代"}, {"salary": 9.0, "experience": "1-3年", "title": "店小蜜训练师", "company": "泡泡豆荚"}, {"salary": 30.0, "experience": "未知", "title": "自动化技术方案经理 (设计出身+整厂规划)", "company": "水晶光电"}, {"salary": 8.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "灵脑智能"}, {"salary": 7.0, "experience": "1-3年", "title": "早九晚六&双休 数据标注岗", "company": "芃武"}, {"salary": 5.0, "experience": "未知", "title": "数据采集兼职", "company": "羚数科技"}, {"salary": 6.0, "experience": "1-3年", "title": "真的很缺人数据标注岗", "company": "南书图书"}, {"salary": 5.5, "experience": "未知", "title": "数据标注/AI训练师", "company": "鹏森"}, {"salary": 7.5, "experience": "经验不限", "title": "数据标注（阿里外派）", "company": "苏州英格玛集团"}, {"salary": 5.5, "experience": "1-3年", "title": "（接受残疾人）数据标注/AI训练师", "company": "创锐光谱"}, {"salary": 1.2, "experience": "经验不限", "title": "古生物学与地层学-AI标注-出题专家", "company": "整数智能"}, {"salary": 10.0, "experience": "1-3年", "title": "音乐标注编曲", "company": "莱纳文化"}, {"salary": 3.8, "experience": "经验不限", "title": "英语标注", "company": "渊润"}, {"salary": 22.5, "experience": "5-10年", "title": "ai训练师", "company": "微风口网络科技"}];
 
 (function() {
-    // ── Salary histogram ──────────────────────────────────────────
-    var bins = ['0-3k', '3-5k', '5-8k', '8-12k', '12-18k', '18-25k', '25k+'];
-    var binValues = bins.map(function(b) { return salaryBins[b] || 0; });
+    // ── Salary histogram ──────────────────────────────────────
+    var bins = ['0-3k','3-5k','5-8k','8-12k','12-18k','18-25k','25k+'];
+    var binVals = bins.map(function(b){return salaryBins[b]||0;});
+    var maxVal = Math.max.apply(null, binVals);
     echarts.init(document.getElementById('chart-salary')).setOption({
-        tooltip: { trigger: 'axis' },
-        grid: { left: 40, right: 20, top: 10, bottom: 30 },
-        xAxis: { type: 'category', data: bins, axisLabel: { fontSize: 11 } },
-        yAxis: { type: 'value', name: '岗位数' },
-        series: [{ type: 'bar', data: binValues, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6366f1'},{offset:1,color:'#818cf8'}]) }, barWidth: '55%' }]
+        tooltip: { trigger:'axis', backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter: '{b}<br/><b>{c}</b> 个岗位' },
+        grid: { left:44, right:24, top:16, bottom:28 },
+        xAxis: { type:'category', data:bins, axisTick:{show:false}, axisLine:{lineStyle:{color:'#e2e8f0'}}, axisLabel:{color:'#64748b',fontSize:11} },
+        yAxis: { type:'value', name:'岗位数', nameTextStyle:{color:'#94a3b8',fontSize:11}, splitLine:{lineStyle:{color:'#f1f5f9'}}, axisLabel:{color:'#94a3b8',fontSize:10} },
+        series:[{ type:'bar', data:binVals.map(function(v,i){return{value:v,itemStyle:{borderRadius:[6,6,0,0],color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:C[i]},{offset:1,color:C[i]+'88'}])}};}), barWidth:'52%', emphasis:{itemStyle:{color:C[0]}} }]
     });
 
-    // ── Experience pie ────────────────────────────────────────────
-    var expData = Object.entries(expDist).map(function(e) { return { name: e[0], value: e[1] }; });
+    // ── Experience donut ──────────────────────────────────────
+    var expData = Object.entries(expDist).map(function(e){return{name:e[0],value:e[1]};});
     echarts.init(document.getElementById('chart-exp')).setOption({
-        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-        series: [{ type: 'pie', radius: ['40%', '72%'], center: ['50%', '52%'], data: expData, label: { fontSize: 11, formatter: '{b}\n{d}%' }, emphasis: { label: { fontSize: 16, fontWeight: 'bold' } } }]
+        color: C,
+        tooltip: { trigger:'item', backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter:'{b}: <b>{c}</b> ({d}%)' },
+        series:[{ type:'pie', radius:['48%','78%'], center:['50%','54%'], data:expData, label:{fontSize:11,color:'#64748b',formatter:'{b}\n{d}%'}, emphasis:{label:{fontSize:15,fontWeight:'bold'}}, itemStyle:{borderColor:'#fff',borderWidth:2} }]
     });
 
-    // ── Education pie ─────────────────────────────────────────────
-    var eduData = Object.entries(eduDist).map(function(e) { return { name: e[0], value: e[1] }; });
+    // ── Education donut ───────────────────────────────────────
+    var eduData = Object.entries(eduDist).map(function(e){return{name:e[0],value:e[1]};});
     echarts.init(document.getElementById('chart-edu')).setOption({
-        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-        series: [{ type: 'pie', radius: ['40%', '72%'], center: ['50%', '52%'], data: eduData, label: { fontSize: 11, formatter: '{b}\n{d}%' }, emphasis: { label: { fontSize: 16, fontWeight: 'bold' } } }]
+        color: C,
+        tooltip: { trigger:'item', backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter:'{b}: <b>{c}</b> ({d}%)' },
+        series:[{ type:'pie', radius:['48%','78%'], center:['50%','54%'], data:eduData, label:{fontSize:11,color:'#64748b',formatter:'{b}\n{d}%'}, emphasis:{label:{fontSize:15,fontWeight:'bold'}}, itemStyle:{borderColor:'#fff',borderWidth:2} }]
     });
 
-    // ── Salary type rose ──────────────────────────────────────────
-    var typeMap = { '月薪': '月薪', '日薪': '日薪', '时薪': '时薪', '面议': '面议' };
-    var typeData = Object.entries(salaryTypes).map(function(e) { return { name: typeMap[e[0]] || e[0] || '其他', value: e[1] }; });
+    // ── Salary type rose ──────────────────────────────────────
+    var typeMap = {'月薪':'月薪','日薪':'日薪','时薪':'时薪','面议':'面议'};
+    var typeData = Object.entries(salaryTypes).map(function(e){return{name:typeMap[e[0]]||e[0]||'其他',value:e[1]};});
     echarts.init(document.getElementById('chart-type')).setOption({
-        tooltip: { trigger: 'item' },
-        series: [{ type: 'pie', roseType: 'area', radius: ['30%', '75%'], center: ['50%', '52%'], data: typeData, label: { fontSize: 11 } }]
+        color: ['#6366f1','#10b981','#f59e0b','#94a3b8'],
+        tooltip: { trigger:'item', backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'} },
+        series:[{ type:'pie', roseType:'area', radius:['36%','78%'], center:['50%','54%'], data:typeData, label:{fontSize:11,color:'#64748b'}, itemStyle:{borderColor:'#fff',borderWidth:2} }]
     });
 
-    // ── Top companies bar ─────────────────────────────────────────
-    var compNames = topCompanies.map(function(c) { return c[0]; }).reverse();
-    var compCounts = topCompanies.map(function(c) { return c[1]; }).reverse();
+    // ── Top companies bar ─────────────────────────────────────
+    var compNames = topCompanies.map(function(c){return c[0];}).reverse();
+    var compCounts = topCompanies.map(function(c){return c[1];}).reverse();
+    var maxComp = Math.max.apply(null, compCounts);
     echarts.init(document.getElementById('chart-company')).setOption({
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        grid: { left: 120, right: 30, top: 10, bottom: 20 },
-        xAxis: { type: 'value' },
-        yAxis: { type: 'category', data: compNames, axisLabel: { fontSize: 10, width: 100, overflow: 'truncate' } },
-        series: [{ type: 'bar', data: compCounts, itemStyle: { color: '#6366f1' }, barWidth: '65%' }]
+        tooltip: { trigger:'axis', axisPointer:{type:'shadow'}, backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter:'{b}<br/>岗位数: <b>{c}</b>' },
+        grid: { left:130, right:28, top:8, bottom:16 },
+        xAxis: { type:'value', splitLine:{lineStyle:{color:'#f1f5f9'}}, axisLabel:{color:'#94a3b8',fontSize:10} },
+        yAxis: { type:'category', data:compNames, axisLine:{show:false}, axisTick:{show:false}, axisLabel:{fontSize:11,color:'#475569',width:112,overflow:'truncate'} },
+        series:[{ type:'bar', data:compCounts.map(function(v,i){return{value:v,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#8b5cf6'},{offset:1,color:'#a78bfa'}]),borderRadius:[0,4,4,0]}};}), barWidth:'60%' }]
     });
 
-    // ── Word cloud ────────────────────────────────────────────────
-    var wcData = topWords.map(function(w) { return { name: w[0], value: w[1] }; });
+    // ── Word cloud ────────────────────────────────────────────
+    var wcData = topWords.map(function(w){return{name:w[0],value:w[1]};});
     echarts.init(document.getElementById('chart-wordcloud')).setOption({
-        tooltip: { show: true },
-        series: [{ type: 'wordCloud', shape: 'circle', sizeRange: [14, 50], rotationRange: [-45, 45], gridSize: 8, drawOutOfBound: false, layoutAnimation: true, textStyle: { fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif', fontWeight: 'normal', color: function() { return 'hsl(' + Math.round(Math.random()*60+200) + ',60%,50%)'; } }, data: wcData }]
+        tooltip: { show:true, backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter:'{b}: {c} 次' },
+        series:[{ type:'wordCloud', shape:'circle', sizeRange:[14,52], rotationRange:[-30,30], gridSize:6, drawOutOfBound:false, layoutAnimation:true, textStyle:{ fontFamily:'PingFang SC, Microsoft YaHei, sans-serif', fontWeight:'normal', color:function(){var h=Math.round(Math.random()*50+215);var s=Math.round(Math.random()*30+55);var l=Math.round(Math.random()*20+38);return'hsl('+h+','+s+'%,'+l+'%)';} }, data:wcData }]
     });
 
-    // ── Scatter ───────────────────────────────────────────────────
-    var expCategories = [...new Set(scatterData.map(function(d) { return d.experience; }))];
-    var expColorMap = {};
-    var colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316'];
-    expCategories.forEach(function(e, i) { expColorMap[e] = colors[i % colors.length]; });
-
+    // ── Scatter ───────────────────────────────────────────────
+    var expSet = [...new Set(scatterData.map(function(d){return d.experience;}))];
+    var expColor = {};
+    expSet.forEach(function(e,i){expColor[e]=C[i%C.length];});
     var seriesByExp = {};
-    scatterData.forEach(function(d) {
-        if (!seriesByExp[d.experience]) seriesByExp[d.experience] = [];
-        seriesByExp[d.experience].push([d.experience, d.salary, d.title, d.company]);
+    scatterData.forEach(function(d){
+        if(!seriesByExp[d.experience]) seriesByExp[d.experience] = [];
+        seriesByExp[d.experience].push({value:[d.experience,d.salary],title:d.title,company:d.company});
     });
-
-    var scatterSeries = Object.entries(seriesByExp).map(function(e) {
-        return {
-            name: e[0],
-            type: 'scatter',
-            data: e[1].map(function(d) { return [d[0], d[1]]; }),
-            symbolSize: 8,
-            itemStyle: { color: expColorMap[e[0]], opacity: 0.7 },
-            emphasis: { focus: 'series' }
-        };
+    var scatterSeries = Object.entries(seriesByExp).map(function(e){
+        return { name:e[0], type:'scatter', data:e[1], symbolSize:function(v){return 6+Math.random()*5;}, itemStyle:{color:expColor[e[0]],opacity:.72,borderColor:'#fff',borderWidth:1}, emphasis:{focus:'series',scale:1.5} };
     });
-
     echarts.init(document.getElementById('chart-scatter')).setOption({
-        tooltip: { trigger: 'item', formatter: function(p) { return p.seriesName + '<br/>薪资: ' + p.value[1] + 'k<br/>点击查看详情'; } },
-        grid: { left: 60, right: 30, top: 30, bottom: 60 },
-        xAxis: { type: 'category', name: '经验要求', axisLabel: { rotate: 30, fontSize: 10 } },
-        yAxis: { type: 'value', name: '薪资 (K/月)', min: 0 },
+        tooltip: { trigger:'item', backgroundColor:'#fff', borderColor:'#e2e8f0', textStyle:{color:'#334155'}, formatter:function(p){return'<b>'+p.data.title+'</b><br/>公司: '+p.data.company+'<br/>薪资: <b>'+p.value[1]+'k</b> · 经验: <b>'+p.seriesName+'</b>';} },
+        grid: { left:60, right:30, top:20, bottom:56 },
+        xAxis: { type:'category', name:'经验要求', nameTextStyle:{color:'#94a3b8',fontSize:11}, axisLabel:{rotate:25,fontSize:10,color:'#64748b'}, axisTick:{show:false}, axisLine:{lineStyle:{color:'#e2e8f0'}} },
+        yAxis: { type:'value', name:'薪资 (K/月)', nameTextStyle:{color:'#94a3b8',fontSize:11}, splitLine:{lineStyle:{color:'#f1f5f9'}}, axisLabel:{color:'#94a3b8',fontSize:10}, min:0 },
         series: scatterSeries
     });
 
-    // Responsive resize
-    window.addEventListener('resize', function() {
-        ['chart-salary','chart-exp','chart-edu','chart-type','chart-company','chart-wordcloud','chart-scatter'].forEach(function(id) {
+    // ── Sidebar nav scroll ────────────────────────────────────
+    var chartIds = ['chart-salary','chart-exp','chart-edu','chart-type','chart-company','chart-wordcloud','chart-scatter'];
+    var navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(function(item, i){
+        item.addEventListener('click', function(){
+            navItems.forEach(function(n){n.classList.remove('active');});
+            item.classList.add('active');
+            var target = document.getElementById(chartIds[i]);
+            if(target) target.scrollIntoView({behavior:'smooth',block:'center'});
+        });
+    });
+
+    // ── Responsive resize ─────────────────────────────────────
+    window.addEventListener('resize', function(){
+        chartIds.forEach(function(id){
             var dom = document.getElementById(id);
-            if (dom) { var inst = echarts.getInstanceByDom(dom); if (inst) inst.resize(); }
+            if(dom){var inst=echarts.getInstanceByDom(dom);if(inst)inst.resize();}
         });
     });
 })();
