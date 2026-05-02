@@ -42,7 +42,7 @@ def run_applescript(code):
     r = subprocess.run(['osascript', '-e', code], capture_output=True, text=True, timeout=30)
     return r.stdout.strip()
 
-def run_js(js_code):
+def run_js(js_code, timeout=30):
     """Execute JavaScript in Chrome active tab, return parsed JSON or None."""
     write_file('/tmp/_boss_scrape.js', js_code)
     as_code = '''
@@ -54,7 +54,7 @@ tell application "Google Chrome"
 end tell
 '''
     write_file('/tmp/_boss_scrape.applescript', as_code)
-    r = subprocess.run(['osascript', '/tmp/_boss_scrape.applescript'], capture_output=True, text=True, timeout=30)
+    r = subprocess.run(['osascript', '/tmp/_boss_scrape.applescript'], capture_output=True, text=True, timeout=timeout)
     out = r.stdout.strip()
     if out and out != 'missing value':
         try:
@@ -128,6 +128,48 @@ if(detail){r.detailFull=detail.innerText;}
 JSON.stringify(r);
 """
     return run_js(js)
+
+
+# ── Parallel batch extraction via fetch ───────────────────────────
+
+EXTRACT_BATCH_JS = """(async () => {
+    var urls = __URLS_JSON__;
+    var promises = urls.map(async function(url) {
+        try {
+            var resp = await fetch(url, {credentials: 'include'});
+            if (!resp.ok) return null;
+            var html = await resp.text();
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var r = {};
+            r.url = url;
+            var banner = doc.querySelector('.job-banner');
+            if (banner) r.banner = banner.innerText;
+            var tags = doc.querySelector('.job-tags');
+            if (tags) r.tags = tags.innerText;
+            var sider = doc.querySelector('.job-sider');
+            if (sider) r.sider = sider.innerText;
+            var detail = doc.querySelector('.job-detail');
+            if (detail) r.detailFull = detail.innerText;
+            return r;
+        } catch(e) {
+            return null;
+        }
+    });
+    var results = await Promise.all(promises);
+    return JSON.stringify(results);
+})()"""
+
+
+def extract_detail_pages_batch(urls):
+    """Extract multiple detail pages in parallel using JS fetch + DOMParser."""
+    if not urls:
+        return []
+    js_code = EXTRACT_BATCH_JS.replace('__URLS_JSON__', json.dumps(urls))
+    result = run_js(js_code, timeout=60)
+    if isinstance(result, list):
+        return result
+    return [None] * len(urls)
+
 
 def parse_job(data):
     """Parse raw page data into structured job fields."""
@@ -321,31 +363,49 @@ def main():
 
         empty_rounds = 0  # reset on finding new URLs
 
-        for url in urls:
+        # Process in batches of 8, using parallel fetch
+        batch_size = 8
+        for batch_start in range(0, len(urls), batch_size):
             if new_count >= args.count:
                 break
+            batch = urls[batch_start:batch_start + batch_size]
+            for u in batch:
+                seen_urls.add(u)
 
-            seen_urls.add(url)
-            name = url.split('/')[-1].split('.')[0][:20]
-            print(f'  [{new_count+1}/{args.count}] {name}...', end=' ', flush=True)
+            t0 = time.time()
+            results = extract_detail_pages_batch(batch)
+            t1 = time.time()
+            print(f'  批量提取 {len(batch)} 条 ({t1-t0:.1f}s)', end='', flush=True)
 
-            data = extract_detail_page(url)
-            if not data:
-                fail_count += 1
-                print('FAILED')
-                time.sleep(0.5)
-                continue
+            for j, url in enumerate(batch):
+                if new_count >= args.count:
+                    break
 
-            job = parse_job(data)
-            result = insert_job(session, job, keyword=args.query)
-            if result:
-                new_count += 1
-                session.commit()
-                append_excel_row(args.output, job)
-                print(f'NEW | {job["薪资"]} | {job["公司名称"]}')
-            else:
-                print(f'DUP | {job["薪资"]} | {job["公司名称"]}')
-            time.sleep(0.3)
+                name = url.split('/')[-1].split('.')[0][:20]
+                data = results[j] if j < len(results) else None
+
+                # Fallback to sequential navigation if batch extraction failed
+                if not data or not data.get('banner'):
+                    data = extract_detail_page(url)
+
+                if not data:
+                    fail_count += 1
+                    print(f'\n  [{new_count+1}/{args.count}] {name}... FAILED', end='', flush=True)
+                    time.sleep(0.5)
+                    continue
+
+                job = parse_job(data)
+                result = insert_job(session, job, keyword=args.query)
+                if result:
+                    new_count += 1
+                    session.commit()
+                    append_excel_row(args.output, job)
+                    print(f'\n  [{new_count}/{args.count}] {name}... NEW | {job["薪资"]} | {job["公司名称"]}', end='', flush=True)
+                else:
+                    print(f'\n  [{new_count+1}/{args.count}] {name}... DUP | {job["薪资"]} | {job["公司名称"]}', end='', flush=True)
+                time.sleep(0.2)
+            print()  # newline after batch
+            time.sleep(1.5)  # delay between batches
 
         scroll_round += 1
 

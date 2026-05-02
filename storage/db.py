@@ -47,7 +47,7 @@ def get_or_create_company(session, name: str, basic_info='', intro='', business_
     return company
 
 
-def insert_job(session, job_data: dict):
+def insert_job(session, job_data: dict, keyword: str = ''):
     url = job_data.get('网址', '')
     if not url:
         return None
@@ -71,6 +71,7 @@ def insert_job(session, job_data: dict):
         title=job_data.get('岗位名称', ''),
         company_id=company.id if company else None,
         company_name=company_name,
+        keyword=keyword,
         salary=job_data.get('薪资', ''),
         salary_type=salary_type,
         experience=job_data.get('经验', ''),

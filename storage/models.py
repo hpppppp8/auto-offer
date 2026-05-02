@@ -39,6 +39,7 @@ class Job(Base):
     location = Column(String(128), default='', comment='工作地点')
     benefits = Column(Text, default='', comment='福利待遇')
 
+    keyword = Column(String(64), default='', index=True, comment='搜索关键词')
     url = Column(String(512), nullable=False, unique=True, comment='岗位详情页URL')
     hr_name = Column(String(64), default='', comment='HR姓名')
     created_at = Column(DateTime, default=datetime.utcnow, comment='创建时间')
