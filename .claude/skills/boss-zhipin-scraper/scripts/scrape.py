@@ -15,6 +15,12 @@ from urllib.parse import quote
 
 import openpyxl
 
+# Import storage module from project root
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+sys.path.insert(0, _PROJECT_ROOT)
+from storage.db import init_db, get_session, insert_job
+from storage.models import Job, Company
+
 
 # ── 13 extracted fields ──────────────────────────────────────────
 HEADERS = [
@@ -308,10 +314,25 @@ def main():
             print('FAILED')
         time.sleep(0.3)
 
-    # 4. Write to Excel
-    print(f'[4/4] 写入Excel...')
+    # 4. Write to DB & Excel
+    print(f'[4/5] 写入数据库和Excel...')
+    engine = init_db()
+    session = get_session(engine)
+    db_new = 0
+    for job in all_jobs:
+        result = insert_job(session, job)
+        if result:
+            db_new += 1
+    session.commit()
+
+    job_count = session.query(Job).count()
+    company_count = session.query(Company).count()
+    session.close()
+
     new_count = write_excel(all_jobs, args.output)
-    print(f'  新增 {new_count} 条, 总计保存在 {args.output}')
+    print(f'  DB新增 {db_new} 条, 跳过重复 {len(all_jobs) - db_new} 条')
+    print(f'  数据库共 {job_count} 岗位, {company_count} 公司')
+    print(f'  Excel新增 {new_count} 条, 总计保存在 {args.output}')
 
     print(f'\n完成! 共采集 {new_count} 条职位信息.')
 
