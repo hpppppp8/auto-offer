@@ -6,7 +6,7 @@ import sys
 import openpyxl
 
 from storage.db import init_db, get_session, insert_job
-from storage.models import Job, Company, HRContact
+from storage.models import Job, Company
 
 
 def import_from_excel(excel_path: str):
@@ -42,11 +42,10 @@ def import_from_excel(excel_path: str):
 
     job_count = session.query(Job).count()
     company_count = session.query(Company).count()
-    hr_count = session.query(HRContact).count()
 
     print(f'\n结果:')
     print(f'  Excel 共 {total} 条, 新增 {new} 条, 跳过重复 {total - new} 条')
-    print(f'  数据库: {job_count} 岗位, {company_count} 公司, {hr_count} HR')
+    print(f'  数据库: {job_count} 岗位, {company_count} 公司')
 
     session.close()
 

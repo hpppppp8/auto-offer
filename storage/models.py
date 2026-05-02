@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -19,19 +19,6 @@ class Company(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     jobs = relationship('Job', back_populates='company')
-    hr_contacts = relationship('HRContact', back_populates='company')
-
-
-class HRContact(Base):
-    __tablename__ = 'hr_contacts'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(64), nullable=False)
-    company_id = Column(Integer, ForeignKey('companies.id'))
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    company = relationship('Company', back_populates='hr_contacts')
-    jobs = relationship('Job', back_populates='hr_contact')
 
 
 class Job(Base):
@@ -40,13 +27,13 @@ class Job(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(256), nullable=False, index=True)
     company_id = Column(Integer, ForeignKey('companies.id'))
-    hr_contact_id = Column(Integer, ForeignKey('hr_contacts.id'), nullable=True)
+    company_name = Column(String(256), default='', index=True)
 
     salary_raw = Column(String(64), default='')
     salary_min = Column(Float, nullable=True)
     salary_max = Column(Float, nullable=True)
-    salary_type = Column(String(16), default='')  # 月薪/日薪/面议
-    salary_periods = Column(Integer, nullable=True)  # 15薪
+    salary_type = Column(String(16), default='')
+    salary_periods = Column(Integer, nullable=True)
 
     experience_raw = Column(String(32), default='')
     experience_normalized = Column(String(16), default='')
@@ -61,8 +48,8 @@ class Job(Base):
     benefits = Column(Text, default='')
 
     url = Column(String(512), nullable=False, unique=True)
+    hr_name = Column(String(64), default='')
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     company = relationship('Company', back_populates='jobs')
-    hr_contact = relationship('HRContact', back_populates='jobs')
