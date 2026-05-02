@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位数据分析仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #1a1a2e; }
+.header { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: #fff; padding: 28px 40px; }
+.header h1 { font-size: 28px; font-weight: 600; letter-spacing: 1px; }
+.header .sub { font-size: 14px; opacity: 0.75; margin-top: 6px; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 24px 40px; margin-top: -16px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 22px 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.stat-card .label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+.stat-card .value { font-size: 32px; font-weight: 700; color: #1a237e; }
+.stat-card .unit { font-size: 14px; color: #9ca3af; margin-left: 4px; }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 40px 24px; }
+.chart-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.chart-card h3 { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 12px; }
+.chart-box { width: 100%; height: 360px; }
+.chart-box.tall { height: 420px; }
+.full-row { grid-column: 1 / -1; }
+.footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>岗位数据分析仪表盘</h1>
+    <div class="sub">基于 241 条岗位数据 · 生成于 2026-05-02 17:00:31</div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="label">总岗位数</div>
+        <div class="value">241<span class="unit">条</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="label">覆盖公司</div>
+        <div class="value">228<span class="unit">家</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="label">月薪岗位均价</div>
+        <div class="value">8.4<span class="unit">K</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="label">月薪岗位数量</div>
+        <div class="value">185<span class="unit">条</span></div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3>薪资分布</h3>
+        <div class="chart-box" id="chart-salary"></div>
+    </div>
+    <div class="chart-card">
+        <h3>经验要求</h3>
+        <div class="chart-box" id="chart-exp"></div>
+    </div>
+    <div class="chart-card">
+        <h3>学历要求</h3>
+        <div class="chart-box" id="chart-edu"></div>
+    </div>
+    <div class="chart-card">
+        <h3>薪资类型</h3>
+        <div class="chart-box" id="chart-type"></div>
+    </div>
+    <div class="chart-card">
+        <h3>热门公司 TOP15</h3>
+        <div class="chart-box tall" id="chart-company"></div>
+    </div>
+    <div class="chart-card">
+        <h3>岗位关键词</h3>
+        <div class="chart-box tall" id="chart-wordcloud"></div>
+    </div>
+    <div class="chart-card full-row">
+        <h3>薪资 vs 经验</h3>
+        <div class="chart-box" id="chart-scatter" style="height:420px"></div>
+    </div>
+</div>
+
+<div class="footer">Auto Offer Analytics · 数据来源：BOSS直聘</div>
+
+<script>
+var salaryBins = {"0-3k": 5, "3-5k": 20, "5-8k": 91, "8-12k": 50, "12-18k": 9, "18-25k": 4, "25k+": 6};
+var expDist = {"5-10年": 7, "在校/应届": 5, "1-3年": 79, "未知": 29, "3-5年": 36, "经验不限": 85};
+var eduDist = {"硕士": 1, "未知": 8, "本科": 79, "高中": 10, "学历不限": 37, "大专": 105, "初中及以下": 1};
+var salaryTypes = {"时薪": 29, "日薪": 27, "月薪": 185};
+var topCompanies = [["润和软件", 3], ["阿里巴巴集团", 2], ["快送熊", 2], ["创焱智科", 2], ["伟星股份", 2], ["杭州霄霖科技有限公司", 2], ["杭州卓荦信息科技", 2], ["浩弋信", 1], ["卯梦信息科技公司", 1], ["台州市节点科技", 1], ["长鹰控股", 1], ["顺丰速运", 1], ["明途教育集团", 1], ["上海勤穆网络科技", 1], ["相芯科技", 1]];
+var topWords = [["标注", 756], ["工作", 548], ["数据", 514], ["能力", 316], ["要求", 267], ["经验", 267], ["具备", 229], ["团队", 208], ["相关", 198], ["负责", 192], ["完成", 177], ["AI", 172], ["时间", 166], ["项目", 156], ["优化", 155], ["优先", 153], ["运维", 152], ["活跃", 146], ["模型", 133], ["专业", 133], ["任职", 133], ["系统", 128], ["能够", 125], ["岗位职责", 125], ["熟悉", 124], ["沟通", 123], ["进行", 122], ["良好", 121], ["办公", 113], ["管理", 113], ["问题", 109], ["确保", 105], ["公司", 104], ["接受", 102], ["流程", 97], ["学习", 96], ["维护", 95], ["招聘", 94], ["以上", 94], ["设备", 93], ["技术", 90], ["质量", 89], ["任务", 85], ["需求", 84], ["文本", 83], ["训练", 82], ["使用", 80], ["数据分析", 79], ["业务", 79], ["客户", 79], ["分析", 78], ["日内", 76], ["图片", 75], ["处理", 75], ["网络", 75], ["基础", 74], ["软件", 74], ["整理", 73], ["居家", 72], ["视频", 69], ["合作", 69], ["结算", 68], ["科技", 68], ["快速", 67], ["分类", 65], ["内容", 65], ["责任心", 64], ["薪资", 64], ["提升", 64], ["参与", 64], ["工具", 64], ["根据", 63], ["结果", 62], ["熟练", 62], ["以上学历", 62], ["周期", 60], ["协作", 60], ["产品", 60], ["岗位", 59], ["日常", 58], ["具有", 58], ["每周", 57], ["服务", 57], ["兼职", 56], ["培训", 54], ["信息", 54], ["提供", 54], ["协助", 53], ["了解", 53], ["故障", 53], ["长期", 52], ["时段", 52], ["规范", 52], ["准确性", 52], ["工期", 51], ["数据处理", 50], ["平台", 50], ["开发", 50], ["计算机", 50], ["反馈", 49]];
+var scatterData = [{"salary": 4.0, "experience": "未知", "title": "数据标注专员", "company": "众轩科技"}, {"salary": 4.5, "experience": "经验不限", "title": "视频描述标注员（影视/文学方向）", "company": "创焱智科"}, {"salary": 10.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "一土咨询"}, {"salary": 2.0, "experience": "经验不限", "title": "方言语音标注（台州）", "company": "浩弋信"}, {"salary": 7.0, "experience": "经验不限", "title": "居家大数据收集", "company": "台州市力州气动工具"}, {"salary": 6.5, "experience": "1-3年", "title": "数据统计专员", "company": "台州众瑞科技有限公司"}, {"salary": 8.5, "experience": "经验不限", "title": "数据标注/ai训练师", "company": "杭州黉门翘楚教育咨询"}, {"salary": 75.0, "experience": "经验不限", "title": "贷款数据孵化师 台州经理 在家办公月入10万", "company": "未来已至"}, {"salary": 8.0, "experience": "1-3年", "title": "数据标注员/金融数据处理员", "company": "杭州叁通锦鸿信息科技"}, {"salary": 6.5, "experience": "1-3年", "title": "数据/策略运营", "company": "盈融"}, {"salary": 9.0, "experience": "1-3年", "title": "ai数据标注", "company": "杭州广荀科技有限公司"}, {"salary": 12.5, "experience": "1-3年", "title": "外贸业务员（无需自己开发+标注为底薪）（出差美国等）", "company": "台州卡拉米罗眼镜"}, {"salary": 6.0, "experience": "经验不限", "title": "ai数据标注员", "company": "杭州仓颉智能科技产业"}, {"salary": 7.8, "experience": "经验不限", "title": "数据线装盒子30/小时长白班人走账清", "company": ""}, {"salary": 6.5, "experience": "1-3年", "title": "To B外贸大数据软件销售（双休+国企背景）", "company": "特易资讯"}, {"salary": 10.0, "experience": "1-3年", "title": "ai数据标注", "company": "安阳启阳信息技术服务"}, {"salary": 5.5, "experience": "经验不限", "title": "数据信息员", "company": "顺丰速运"}, {"salary": 5.5, "experience": "经验不限", "title": "数据/策略运营", "company": "台州市欢扬眼镜"}, {"salary": 3.5, "experience": "在校/应届", "title": "数据标注专员/接受无经验/双休", "company": "景烁科技"}, {"salary": 7.5, "experience": "经验不限", "title": "市场专员（大平台、B端大客户、AI大数据）", "company": "企知道大数据科技"}, {"salary": 6.0, "experience": "3-5年", "title": "数据统计员", "company": "新荣发"}, {"salary": 7.0, "experience": "经验不限", "title": "数据质检专员", "company": "雷博人力资"}, {"salary": 10.5, "experience": "1-3年", "title": "大数据项目经理", "company": "新疆政隆电气有限公司"}, {"salary": 6.5, "experience": "5-10年", "title": "仓库数据员", "company": "浙江泰和纺织机械"}, {"salary": 4.0, "experience": "经验不限", "title": "团队二把手 数据资料员", "company": "台州昌强商务咨询"}, {"salary": 7.0, "experience": "未知", "title": "数据标注质检员", "company": "中电金信"}, {"salary": 5.5, "experience": "3-5年", "title": "数据/策略运营", "company": "台州市讯诚电子商务"}, {"salary": 3.5, "experience": "经验不限", "title": "数据采集", "company": "台州市旭能光伏安装"}, {"salary": 4.5, "experience": "经验不限", "title": "数据采集（实习生亦可）", "company": "柔川信息"}, {"salary": 4.5, "experience": "未知", "title": "数据分析师", "company": "三峰家电"}, {"salary": 5.5, "experience": "1-3年", "title": "房地产数据专员", "company": "万洋众创城投资集团"}, {"salary": 5.5, "experience": "5-10年", "title": "财务数据统计员", "company": "高朋物流"}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "杏豪"}, {"salary": 5.0, "experience": "1-3年", "title": "大数据采集员", "company": "十月如初健康"}, {"salary": 5.5, "experience": "经验不限", "title": "急招6k/月AI数据标注员长白班坐班六休一", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "数据分析师", "company": "台州湾新区北部湾..."}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注员", "company": "阿里巴巴集团"}, {"salary": 7.5, "experience": "1-3年", "title": "数据仓管员", "company": "汇精制泵"}, {"salary": 4.5, "experience": "经验不限", "title": "ai训练师接受小白", "company": "越沪"}, {"salary": 5.5, "experience": "1-3年", "title": "ai本地数据资料库管理员", "company": "天台匠隐工艺品加工部"}, {"salary": 7.5, "experience": "经验不限", "title": "数据整理专员", "company": "卯梦信息科技公司"}, {"salary": 4.5, "experience": "经验不限", "title": "数据分析师", "company": "明途教育集团"}, {"salary": 5.5, "experience": "1-3年", "title": "5-6k招数据分析专员", "company": "快送熊"}, {"salary": 9.5, "experience": "经验不限", "title": "软件销售【AI+科创+B端大数据】", "company": "宁波立明"}, {"salary": 30.0, "experience": "3-5年", "title": "数据平台工程师（前端软件开发方向）", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "办公室文员/数据统计员", "company": "温岭市韵通快递有..."}, {"salary": 5.5, "experience": "1-3年", "title": "5000-6000招数据分析管培生", "company": "快送熊"}, {"salary": 5.0, "experience": "1-3年", "title": "聚水潭erp数据统计文员", "company": "棉品世家"}, {"salary": 7.0, "experience": "3-5年", "title": "销售合同与售后数据专员", "company": "上海海桦新材料"}, {"salary": 9.5, "experience": "未知", "title": "数据标注", "company": "晖荣宜科技"}, {"salary": 7.5, "experience": "经验不限", "title": "数据标注", "company": "浙江中跃阳智慧科技"}, {"salary": 6.0, "experience": "1-3年", "title": "数据标注项目经理", "company": "杭州星聚数智科技"}, {"salary": 15.5, "experience": "1-3年", "title": "电商商品标注质检（大厂早九晚六周末双休", "company": "北京外企德科人力..."}, {"salary": 2.2, "experience": "经验不限", "title": "大数据开发", "company": "台州市丘宇电子商务"}, {"salary": 6.0, "experience": "未知", "title": "数据标注师~无经验要求", "company": "宿迁易智盛科技"}, {"salary": 8.5, "experience": "3-5年", "title": "数据地图标注", "company": "杭州云端视界科技"}, {"salary": 9.5, "experience": "1-3年", "title": "大数据算法工程师", "company": "伟星股份"}, {"salary": 5.5, "experience": "经验不限", "title": "数据文员", "company": "叮咚买菜"}, {"salary": 25.0, "experience": "3-5年", "title": "信息数据智能部经理", "company": "浙江弘达"}, {"salary": 7.0, "experience": "经验不限", "title": "方言or普通话数据标注师", "company": "阿里巴巴集团"}, {"salary": 6.5, "experience": "1-3年", "title": "大数据工程师", "company": "加新国际(台州)"}, {"salary": 6.5, "experience": "1-3年", "title": "数据运营专员", "company": "上海旗胜胜信息咨询"}, {"salary": 8.5, "experience": "1-3年", "title": "数据标注/ai训练师", "company": "与问职趣"}, {"salary": 12.5, "experience": "3-5年", "title": "大数据运维（线上面试）", "company": "润和软件"}, {"salary": 4.5, "experience": "经验不限", "title": "数据信息员", "company": "顺丰"}, {"salary": 10.0, "experience": "3-5年", "title": "数据分析员", "company": "公元股份"}, {"salary": 7.0, "experience": "1-3年", "title": "AI应用测试专员", "company": "台州市爱上淘品牌管理"}, {"salary": 7.0, "experience": "3-5年", "title": "数据项目组长", "company": "台州智行妙蛙信息科技"}, {"salary": 9.5, "experience": "经验不限", "title": "数据分析", "company": "浙江宇嘉"}, {"salary": 8.5, "experience": "3-5年", "title": "数据与资料管理专员", "company": "利欧集团"}, {"salary": 11.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "鸣谦望潮"}, {"salary": 10.5, "experience": "1-3年", "title": "AI数据标注师", "company": "道然进出口"}, {"salary": 5.5, "experience": "1-3年", "title": "数据/策略运营", "company": "天台县宏庆家电商行"}, {"salary": 17.0, "experience": "1-3年", "title": "数据标注/AI训练师-线上面试反馈快", "company": "捷科智诚"}, {"salary": 4.5, "experience": "1-3年", "title": "AI信贷数据标注/早九晚六/周末双休", "company": "博彦科技"}, {"salary": 8.5, "experience": "经验不限", "title": "标注质检（周末双休）", "company": "中软国际"}, {"salary": 8.5, "experience": "1-3年", "title": "ai数据标注员", "company": "南昌辰睿"}, {"salary": 6.5, "experience": "经验不限", "title": "数据标注专员", "company": "杭州众智为马科技"}, {"salary": 10.0, "experience": "1-3年", "title": "AI数据标注师（AI打标人员）", "company": "道弗科技"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注客户经理", "company": "杭州聚商企信息服务"}, {"salary": 10.0, "experience": "经验不限", "title": "数据标注/ai训练师", "company": "长鹰控股"}, {"salary": 7.5, "experience": "1-3年", "title": "系统运维工程师—台州", "company": "华云科技"}, {"salary": 6.5, "experience": "1-3年", "title": "idc机房运维工程师", "company": "杭数人才"}, {"salary": 7.0, "experience": "3-5年", "title": "管廊运维员（台州）", "company": "创搏控股"}, {"salary": 8.0, "experience": "1-3年", "title": "ai训练师", "company": "润和软件"}, {"salary": 4.5, "experience": "经验不限", "title": "物联网系统运维岗", "company": "非普软件"}, {"salary": 6.5, "experience": "1-3年", "title": "台州表库运维", "company": "杭州恒胜科技"}, {"salary": 6.5, "experience": "经验不限", "title": "网络运维初级工程师（双休五险一金项目奖）", "company": "台州檀雅网络科技"}, {"salary": 7.5, "experience": "1-3年", "title": "数据标注专员", "company": "宇途汽车"}, {"salary": 10.0, "experience": "5-10年", "title": "配电运维工程师", "company": "易阳新能源科技"}, {"salary": 9.5, "experience": "1-3年", "title": "服务器运维工程师", "company": "星峰科技"}, {"salary": 5.0, "experience": "经验不限", "title": "运维工程师", "company": "博俏电脑"}, {"salary": 7.5, "experience": "经验不限", "title": "视觉运维工程师", "company": "伟星股份"}, {"salary": 25.0, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "杭州云通物业有限公司"}, {"salary": 7.5, "experience": "1-3年", "title": "运维工程师", "company": "大阳龙摄影"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注平台经理", "company": "博斐信息技术"}, {"salary": 27.5, "experience": "3-5年", "title": "网络运维-银行", "company": ""}, {"salary": 9.5, "experience": "3-5年", "title": "桌面运维工程师", "company": "地通控股集团"}, {"salary": 8.5, "experience": "1-3年", "title": "项目数据标注", "company": "杭州筑鼎建筑工程设计"}, {"salary": 8.5, "experience": "3-5年", "title": "运维工程师", "company": "吉奥时空"}, {"salary": 10.0, "experience": "3-5年", "title": "实施运维工程师", "company": "浙江康邻科技有限公司"}, {"salary": 6.5, "experience": "未知", "title": "运维工程师", "company": "米力"}, {"salary": 10.5, "experience": "1-3年", "title": "运维工程师", "company": "优思贝日用品"}, {"salary": 4.5, "experience": "在校/应届", "title": "运维工程师", "company": "意派装饰公司"}, {"salary": 10.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "广州云销文化传媒"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师", "company": "杭州诚莘科技有限公司"}, {"salary": 5.5, "experience": "3-5年", "title": "运维工程师", "company": "冬嘻企业管理"}, {"salary": 12.0, "experience": "经验不限", "title": "云平台运维", "company": "润和软件"}, {"salary": 6.0, "experience": "1-3年", "title": "运维工程师", "company": "一松环境"}, {"salary": 9.5, "experience": "1-3年", "title": "AI工程师", "company": "小耳朵科技"}, {"salary": 6.0, "experience": "未知", "title": "运维", "company": "浙江星树科技有限公司"}, {"salary": 5.5, "experience": "经验不限", "title": "运维工程师", "company": "安徽博思锐信息科技"}, {"salary": 5.5, "experience": "3-5年", "title": "运维工程师（台州临海）", "company": "绿洁环境科技"}, {"salary": 10.5, "experience": "1-3年", "title": "it运维工程师", "company": "上海雷博司电气"}, {"salary": 5.0, "experience": "经验不限", "title": "运维工程师", "company": "中建智能"}, {"salary": 7.0, "experience": "1-3年", "title": "BI运维工程师", "company": "浙江春歌控股"}, {"salary": 11.0, "experience": "3-5年", "title": "运维工程师", "company": "助力"}, {"salary": 12.5, "experience": "3-5年", "title": "硬件运维工程师（正编岗位）", "company": "追觅科技"}, {"salary": 9.0, "experience": "5-10年", "title": "plc电气工程师", "company": "皮休"}, {"salary": 6.5, "experience": "1-3年", "title": "充电桩运维", "company": "奥王时代科技有限公司"}, {"salary": 19.0, "experience": "1-3年", "title": "移动机器人系统运维工程师", "company": "浙江旗鱼"}, {"salary": 9.0, "experience": "3-5年", "title": "运维班长", "company": "甬坤"}, {"salary": 0.8, "experience": "3-5年", "title": "运维工程师", "company": "台州麦迪环保"}, {"salary": 5.5, "experience": "经验不限", "title": "海康 数据标注 长白班 坐班 工作轻松", "company": "海康威视"}, {"salary": 20.0, "experience": "1-3年", "title": "ai数据标注师/模型评测（互联网大厂）", "company": ""}, {"salary": 5.5, "experience": "经验不限", "title": "运维工程师", "company": "台升智能输送"}, {"salary": 6.5, "experience": "在校/应届", "title": "it助理工程师（26届校园招聘）（出差泰国等）", "company": "加德凡兴"}, {"salary": 6.5, "experience": "未知", "title": "运维工程师（台州生态环保局）", "company": "云景科技"}, {"salary": 12.0, "experience": "3-5年", "title": "自动化工程师", "company": "三禾工业"}, {"salary": 7.0, "experience": "经验不限", "title": "运维辅助（台州外包）", "company": "环茂自控"}, {"salary": 8.0, "experience": "3-5年", "title": "光伏运维电工", "company": "台州锐博新能源"}, {"salary": 12.0, "experience": "3-5年", "title": "IT工程师", "company": "嘉合劲威"}, {"salary": 10.5, "experience": "3-5年", "title": "运维工程师", "company": "云砥"}, {"salary": 4.5, "experience": "1-3年", "title": "（居家）数学数据标注 / 双休+朝九晚六", "company": "月奕"}, {"salary": 7.0, "experience": "1-3年", "title": "运维工程师", "company": "谱育科技"}, {"salary": 9.0, "experience": "3-5年", "title": "中级系统运维（浙江三门）", "company": "国科科技"}, {"salary": 7.5, "experience": "3-5年", "title": "综合运维工程师", "company": "美创科技"}, {"salary": 6.5, "experience": "3-5年", "title": "数据标注", "company": "北京新界永恒科技"}, {"salary": 10.0, "experience": "经验不限", "title": "【数据标注专员】+五险+双休+朝九晚六", "company": "程胜科技"}, {"salary": 9.5, "experience": "经验不限", "title": "数据标注/AI训练师", "company": "杭州杭桥科技有限公司"}, {"salary": 8.5, "experience": "1-3年", "title": "运维工程师", "company": "台州星展文化传播"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师（台州）", "company": "聚光"}, {"salary": 7.0, "experience": "1-3年", "title": "网络工程师", "company": "天颂建设"}, {"salary": 3.5, "experience": "1-3年", "title": "共享充电宝运维员", "company": "帝益"}, {"salary": 9.0, "experience": "3-5年", "title": "网络安全运维工程师", "company": "中能汇科"}, {"salary": 7.0, "experience": "1-3年", "title": "运维", "company": "浙江城停畅联智能..."}, {"salary": 4.5, "experience": "1-3年", "title": "运维工程师（浙江天台）", "company": "湖北科普特智能科技"}, {"salary": 7.5, "experience": "3-5年", "title": "数据标注文员（固定双休，节假日正常）", "company": "杭州松辉科技有限公司"}, {"salary": 10.0, "experience": "1-3年", "title": "ERP运维工程师", "company": "铭都进出口"}, {"salary": 6.0, "experience": "1-3年", "title": "运维工程师", "company": "超科软件"}, {"salary": 2.5, "experience": "经验不限", "title": "三门县运维工程师", "company": "惠尔丰"}, {"salary": 4.0, "experience": "在校/应届", "title": "运维工程师", "company": "台州市节点科技"}, {"salary": 8.0, "experience": "1-3年", "title": "项目交付及运维工程师（驻台州三门项目部）", "company": "领泽合希信息技术"}, {"salary": 12.0, "experience": "5-10年", "title": "ERP运维开发工程师", "company": "金鸿"}, {"salary": 5.5, "experience": "在校/应届", "title": "光伏电站运维工程师", "company": "金芝麻新能源"}, {"salary": 6.5, "experience": "经验不限", "title": "运维工程师（网络方向+监狱客户）", "company": "融至兴科技"}, {"salary": 6.0, "experience": "1-3年", "title": "数据标注/ai训练师", "company": "厚德科技"}, {"salary": 4.5, "experience": "经验不限", "title": "医疗数据标注员", "company": "杭州星引教育科技"}, {"salary": 5.5, "experience": "1-3年", "title": "数据标注（早九晚六双休/无销售/五险一金）", "company": "易宝软件"}, {"salary": 10.0, "experience": "3-5年", "title": "数据标注/AI训练师", "company": "杭州博陆信息科技有限公司"}, {"salary": 7.0, "experience": "3-5年", "title": "数据标注", "company": "杭州城市大脑联合..."}, {"salary": 4.5, "experience": "经验不限", "title": "网络安全运维", "company": "台州华峰"}, {"salary": 10.5, "experience": "未知", "title": "plc工程师", "company": "台州易佳自动化"}, {"salary": 5.5, "experience": "1-3年", "title": "电商数据标注员", "company": "北京软通动力云计..."}, {"salary": 7.0, "experience": "1-3年", "title": "ai数据标注员", "company": "杭州在水一芳影视..."}, {"salary": 5.0, "experience": "经验不限", "title": "数据标注专员", "company": "滨电"}, {"salary": 5.5, "experience": "经验不限", "title": "数据标注专员", "company": "贝尔利科技"}, {"salary": 7.0, "experience": "经验不限", "title": "用户体验&数据标注-8K-五险一金-双休", "company": "上海勤穆网络科技"}, {"salary": 6.0, "experience": "3-5年", "title": "数据标注员", "company": "杭州谱蓝科技有限公司"}, {"salary": 5.5, "experience": "1-3年", "title": "数据标注专员", "company": "菌群文化"}, {"salary": 24.0, "experience": "3-5年", "title": "数据标注/AI训练师", "company": "蜜图公司"}, {"salary": 5.5, "experience": "经验不限", "title": "AI数据标注工程师", "company": "昆仑时代"}, {"salary": 9.0, "experience": "1-3年", "title": "店小蜜训练师", "company": "泡泡豆荚"}, {"salary": 30.0, "experience": "未知", "title": "自动化技术方案经理 (设计出身+整厂规划)", "company": "水晶光电"}, {"salary": 8.5, "experience": "1-3年", "title": "数据标注/AI训练师", "company": "灵脑智能"}, {"salary": 7.0, "experience": "1-3年", "title": "早九晚六&双休 数据标注岗", "company": "芃武"}, {"salary": 5.0, "experience": "未知", "title": "数据采集兼职", "company": "羚数科技"}, {"salary": 6.0, "experience": "1-3年", "title": "真的很缺人数据标注岗", "company": "南书图书"}, {"salary": 5.5, "experience": "未知", "title": "数据标注/AI训练师", "company": "鹏森"}, {"salary": 7.5, "experience": "经验不限", "title": "数据标注（阿里外派）", "company": "苏州英格玛集团"}, {"salary": 5.5, "experience": "1-3年", "title": "（接受残疾人）数据标注/AI训练师", "company": "创锐光谱"}, {"salary": 1.2, "experience": "经验不限", "title": "古生物学与地层学-AI标注-出题专家", "company": "整数智能"}, {"salary": 10.0, "experience": "1-3年", "title": "音乐标注编曲", "company": "莱纳文化"}, {"salary": 3.8, "experience": "经验不限", "title": "英语标注", "company": "渊润"}, {"salary": 22.5, "experience": "5-10年", "title": "ai训练师", "company": "微风口网络科技"}];
+
+(function() {
+    // ── Salary histogram ──────────────────────────────────────────
+    var bins = ['0-3k', '3-5k', '5-8k', '8-12k', '12-18k', '18-25k', '25k+'];
+    var binValues = bins.map(function(b) { return salaryBins[b] || 0; });
+    echarts.init(document.getElementById('chart-salary')).setOption({
+        tooltip: { trigger: 'axis' },
+        grid: { left: 40, right: 20, top: 10, bottom: 30 },
+        xAxis: { type: 'category', data: bins, axisLabel: { fontSize: 11 } },
+        yAxis: { type: 'value', name: '岗位数' },
+        series: [{ type: 'bar', data: binValues, itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#6366f1'},{offset:1,color:'#818cf8'}]) }, barWidth: '55%' }]
+    });
+
+    // ── Experience pie ────────────────────────────────────────────
+    var expData = Object.entries(expDist).map(function(e) { return { name: e[0], value: e[1] }; });
+    echarts.init(document.getElementById('chart-exp')).setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+        series: [{ type: 'pie', radius: ['40%', '72%'], center: ['50%', '52%'], data: expData, label: { fontSize: 11, formatter: '{b}\n{d}%' }, emphasis: { label: { fontSize: 16, fontWeight: 'bold' } } }]
+    });
+
+    // ── Education pie ─────────────────────────────────────────────
+    var eduData = Object.entries(eduDist).map(function(e) { return { name: e[0], value: e[1] }; });
+    echarts.init(document.getElementById('chart-edu')).setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+        series: [{ type: 'pie', radius: ['40%', '72%'], center: ['50%', '52%'], data: eduData, label: { fontSize: 11, formatter: '{b}\n{d}%' }, emphasis: { label: { fontSize: 16, fontWeight: 'bold' } } }]
+    });
+
+    // ── Salary type rose ──────────────────────────────────────────
+    var typeMap = { '月薪': '月薪', '日薪': '日薪', '时薪': '时薪', '面议': '面议' };
+    var typeData = Object.entries(salaryTypes).map(function(e) { return { name: typeMap[e[0]] || e[0] || '其他', value: e[1] }; });
+    echarts.init(document.getElementById('chart-type')).setOption({
+        tooltip: { trigger: 'item' },
+        series: [{ type: 'pie', roseType: 'area', radius: ['30%', '75%'], center: ['50%', '52%'], data: typeData, label: { fontSize: 11 } }]
+    });
+
+    // ── Top companies bar ─────────────────────────────────────────
+    var compNames = topCompanies.map(function(c) { return c[0]; }).reverse();
+    var compCounts = topCompanies.map(function(c) { return c[1]; }).reverse();
+    echarts.init(document.getElementById('chart-company')).setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: 120, right: 30, top: 10, bottom: 20 },
+        xAxis: { type: 'value' },
+        yAxis: { type: 'category', data: compNames, axisLabel: { fontSize: 10, width: 100, overflow: 'truncate' } },
+        series: [{ type: 'bar', data: compCounts, itemStyle: { color: '#6366f1' }, barWidth: '65%' }]
+    });
+
+    // ── Word cloud ────────────────────────────────────────────────
+    var wcData = topWords.map(function(w) { return { name: w[0], value: w[1] }; });
+    echarts.init(document.getElementById('chart-wordcloud')).setOption({
+        tooltip: { show: true },
+        series: [{ type: 'wordCloud', shape: 'circle', sizeRange: [14, 50], rotationRange: [-45, 45], gridSize: 8, drawOutOfBound: false, layoutAnimation: true, textStyle: { fontFamily: 'PingFang SC, Microsoft YaHei, sans-serif', fontWeight: 'normal', color: function() { return 'hsl(' + Math.round(Math.random()*60+200) + ',60%,50%)'; } }, data: wcData }]
+    });
+
+    // ── Scatter ───────────────────────────────────────────────────
+    var expCategories = [...new Set(scatterData.map(function(d) { return d.experience; }))];
+    var expColorMap = {};
+    var colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316'];
+    expCategories.forEach(function(e, i) { expColorMap[e] = colors[i % colors.length]; });
+
+    var seriesByExp = {};
+    scatterData.forEach(function(d) {
+        if (!seriesByExp[d.experience]) seriesByExp[d.experience] = [];
+        seriesByExp[d.experience].push([d.experience, d.salary, d.title, d.company]);
+    });
+
+    var scatterSeries = Object.entries(seriesByExp).map(function(e) {
+        return {
+            name: e[0],
+            type: 'scatter',
+            data: e[1].map(function(d) { return [d[0], d[1]]; }),
+            symbolSize: 8,
+            itemStyle: { color: expColorMap[e[0]], opacity: 0.7 },
+            emphasis: { focus: 'series' }
+        };
+    });
+
+    echarts.init(document.getElementById('chart-scatter')).setOption({
+        tooltip: { trigger: 'item', formatter: function(p) { return p.seriesName + '<br/>薪资: ' + p.value[1] + 'k<br/>点击查看详情'; } },
+        grid: { left: 60, right: 30, top: 30, bottom: 60 },
+        xAxis: { type: 'category', name: '经验要求', axisLabel: { rotate: 30, fontSize: 10 } },
+        yAxis: { type: 'value', name: '薪资 (K/月)', min: 0 },
+        series: scatterSeries
+    });
+
+    // Responsive resize
+    window.addEventListener('resize', function() {
+        ['chart-salary','chart-exp','chart-edu','chart-type','chart-company','chart-wordcloud','chart-scatter'].forEach(function(id) {
+            var dom = document.getElementById(id);
+            if (dom) { var inst = echarts.getInstanceByDom(dom); if (inst) inst.resize(); }
+        });
+    });
+})();
+</script>
+</body>
+</html>
