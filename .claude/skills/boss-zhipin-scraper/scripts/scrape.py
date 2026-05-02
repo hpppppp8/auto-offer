@@ -234,36 +234,25 @@ def parse_job(data):
 
 # ── Excel output ─────────────────────────────────────────────────
 
-def write_excel(jobs, output_path):
-    """Write or append job records to Excel file."""
-    if os.path.exists(output_path):
-        wb = openpyxl.load_workbook(output_path)
-        ws = wb.active
-        existing_titles = set()
-        for row in range(2, ws.max_row + 1):
-            t = ws.cell(row, 1).value
-            if t:
-                existing_titles.add(t)
-    else:
+def init_excel(output_path):
+    """Create Excel file with headers if not exists."""
+    if not os.path.exists(output_path):
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = '职位详情'
         for ci, h in enumerate(HEADERS, 1):
             ws.cell(1, ci).value = h
-        existing_titles = set()
+        wb.save(output_path)
 
-    new_count = 0
-    for job in jobs:
-        if job['岗位名称'] in existing_titles:
-            continue
-        existing_titles.add(job['岗位名称'])
-        row = ws.max_row + 1
-        for ci, key in enumerate(HEADERS, 1):
-            ws.cell(row, ci).value = job[key]
-        new_count += 1
 
+def append_excel_row(output_path, job):
+    """Append a single job row to Excel immediately."""
+    wb = openpyxl.load_workbook(output_path)
+    ws = wb.active
+    row = ws.max_row + 1
+    for ci, key in enumerate(HEADERS, 1):
+        ws.cell(row, ci).value = job[key]
     wb.save(output_path)
-    return new_count
 
 
 # ── Main ─────────────────────────────────────────────────────────
@@ -300,38 +289,45 @@ def main():
     session = get_session(engine)
     job_count_before = session.query(Job).count()
 
+    # Init Excel
+    init_excel(args.output)
+
     # 1. Navigate to search results
     print('[1/5] 打开搜索页面...')
     chrome_navigate(search_url)
     time.sleep(4)
 
-    # 2-3. Loop: scroll -> extract -> insert, until we have enough new jobs
+    # 2-3. Loop: scroll -> extract -> insert -> write Excel, until enough new jobs
     print(f'[2/5] 采集职位（需新增 {args.count} 条，跳过已存在）...')
     seen_urls = set()
-    new_jobs = []
+    new_count = 0
     fail_count = 0
     scroll_round = 0
 
-    while len(new_jobs) < args.count:
-        if scroll_round > 0 or len(seen_urls) < args.count * 2:
-            urls = scroll_to_load(max(args.count * 3, 30), max_scrolls=scroll_round + 5)
-            urls = [u for u in urls if u not in seen_urls]
-        else:
-            urls = [u for u in collect_job_urls() if u not in seen_urls]
+    empty_rounds = 0  # consecutive rounds with 0 new URLs
+    while new_count < args.count:
+        urls = scroll_to_load(max(args.count * 3, 30), max_scrolls=scroll_round + 5)
+        urls = [u for u in urls if u not in seen_urls]
 
         if not urls:
+            empty_rounds += 1
             scroll_round += 1
+            if empty_rounds >= 3:
+                print(f'  搜索结果已耗尽，仅找到 {new_count} 条新增岗位')
+                break
             run_js("window.scrollTo(0, document.body.scrollHeight); 'scrolled';")
             time.sleep(2)
             continue
 
+        empty_rounds = 0  # reset on finding new URLs
+
         for url in urls:
-            if len(new_jobs) >= args.count:
+            if new_count >= args.count:
                 break
 
             seen_urls.add(url)
             name = url.split('/')[-1].split('.')[0][:20]
-            print(f'  [{len(new_jobs)+1}/{args.count}] {name}...', end=' ', flush=True)
+            print(f'  [{new_count+1}/{args.count}] {name}...', end=' ', flush=True)
 
             data = extract_detail_page(url)
             if not data:
@@ -341,36 +337,30 @@ def main():
                 continue
 
             job = parse_job(data)
-            result = insert_job(session, job)
+            result = insert_job(session, job, keyword=args.query)
             if result:
-                new_jobs.append(job)
+                new_count += 1
                 session.commit()
+                append_excel_row(args.output, job)
                 print(f'NEW | {job["薪资"]} | {job["公司名称"]}')
             else:
                 print(f'DUP | {job["薪资"]} | {job["公司名称"]}')
             time.sleep(0.3)
 
         scroll_round += 1
-        if scroll_round > 15:
-            print('  已滚动足够多，停止。')
-            break
 
-    # 4. Write new jobs to Excel
-    print(f'\n[3/5] 写入Excel（仅新增）...')
-    excel_new = write_excel(new_jobs, args.output) if new_jobs else 0
-
-    # 5. Summary
+    # Summary
     job_count = session.query(Job).count()
     company_count = session.query(Company).count()
     session.close()
 
     print(f'\n[结果]')
-    print(f'  本次采集 {len(new_jobs) + fail_count} 个页面, 失败 {fail_count} 个')
-    print(f'  DB新增 {len(new_jobs)} 条, 跳过重复 {len(seen_urls) - len(new_jobs) - fail_count} 条')
+    print(f'  本次采集页面 {new_count + fail_count} 个, 失败 {fail_count} 个')
+    print(f'  DB新增 {new_count} 条, 跳过重复 {len(seen_urls) - new_count - fail_count} 条')
     print(f'  数据库: {job_count} 岗位 ({job_count_before}→{job_count}), {company_count} 公司')
-    print(f'  Excel: {excel_new} 条 → {args.output}')
+    print(f'  Excel: {new_count} 条 → {args.output}')
 
-    print(f'\n完成! 共新增 {len(new_jobs)} 条职位信息.')
+    print(f'\n完成! 共新增 {new_count} 条职位信息.')
 
 
 if __name__ == '__main__':
