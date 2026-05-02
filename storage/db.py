@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from storage.models import Base, Company, Job
-from storage.cleaner import clean_salary, clean_experience, clean_education, clean_location
+from storage.cleaner import clean_salary
 
 
 def get_db_url():
@@ -65,29 +65,18 @@ def insert_job(session, job_data: dict):
         business_registration=job_data.get('工商信息', ''),
     )
 
-    salary = clean_salary(job_data.get('薪资', ''))
-    exp = clean_experience(job_data.get('经验', ''))
-    edu = clean_education(job_data.get('学历', ''))
-    loc = clean_location(job_data.get('工作地点', ''))
+    salary_type = clean_salary(job_data.get('薪资', '')).get('type', '')
 
     job = Job(
         title=job_data.get('岗位名称', ''),
         company_id=company.id if company else None,
         company_name=company_name,
-        salary_raw=salary['raw'],
-        salary_min=salary['min'],
-        salary_max=salary['max'],
-        salary_type=salary['type'],
-        salary_periods=salary['periods'],
+        salary_raw=job_data.get('薪资', ''),
+        salary_type=salary_type,
         experience_raw=job_data.get('经验', ''),
-        experience_normalized=exp,
         education_raw=job_data.get('学历', ''),
-        education_normalized=edu,
         description=job_data.get('岗位描述', ''),
         location_raw=job_data.get('工作地点', ''),
-        province=loc['province'],
-        city=loc['city'],
-        district=loc['district'],
         benefits=job_data.get('福利', ''),
         hr_name=job_data.get('HR', ''),
         url=url,
