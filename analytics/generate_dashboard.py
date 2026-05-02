@@ -153,222 +153,328 @@ def generate_html(dashboard):
 <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
 <style>
 :root {{
-  --bg: #f5f5f7;
-  --card: #ffffff;
-  --text: #1d1d1f;
-  --secondary: #86868b;
-  --tertiary: #aeaeb2;
-  --accent: #0071e3;
-  --green: #34c759;
-  --orange: #ff9500;
-  --purple: #af52de;
-  --pink: #ff2d55;
-  --teal: #5ac8fa;
-  --indigo: #5856d6;
-  --separator: #d2d2d7;
-  --radius: 18px;
-  --radius-sm: 12px;
+  --bg: #141118;
+  --surface: #1e1b24;
+  --surface2: #25222d;
+  --surface3: #2d2936;
+  --border: #302c39;
+  --text: #ffffff;
+  --text2: #b0acb9;
+  --text3: #787380;
+  --lavender: #b8a9d4;
+  --mint: #7ecba1;
+  --cream: #f0d78c;
+  --rose: #e8998d;
+  --sky: #8ecae6;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --shadow-card: 0 2px 8px rgba(0,0,0,.25), 0 0 1px rgba(255,255,255,.04);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,.4), 0 0 1px rgba(255,255,255,.06);
+  --shadow-diffuse: 0 20px 80px rgba(0,0,0,.5);
 }}
 * {{ margin:0; padding:0; box-sizing:border-box; }}
 body {{
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background: var(--bg); color: var(--text); line-height: 1.5;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  display: flex; min-height: 100vh;
 }}
 
-/* ── Navigation ──────────────────────────────────────────── */
-.nav {{
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(245,245,247,0.82); backdrop-filter: saturate(180%) blur(20px);
+/* ── Sidebar ─────────────────────────────────────────────── */
+.side {{
+  width: 64px; flex-shrink: 0; background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 0; gap: 6px; position: sticky; top: 0; height: 100vh;
+}}
+.side-icon {{
+  width: 40px; height: 40px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; transition: all .2s;
+  color: var(--text3); position: relative;
+}}
+.side-icon:hover {{ color: var(--text2); background: var(--surface3); }}
+.side-icon.active {{ color: var(--lavender); background: rgba(184,169,212,.15); }}
+.side-icon.active::before {{
+  content: ''; position: absolute; left: -12px; top: 12px; bottom: 12px;
+  width: 3px; border-radius: 0 3px 3px 0; background: var(--lavender);
+}}
+
+/* ── Main area ───────────────────────────────────────────── */
+.main {{ flex:1; display: flex; flex-direction: column; min-width: 0; }}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+.topbar {{
+  position: sticky; top:0; z-index:50;
+  background: rgba(20,17,24,.82); backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--separator);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 56px; display: flex; align-items: center; gap: 24px;
 }}
-.nav-inner {{
-  max-width: 1200px; margin: 0 auto; padding: 0 32px;
-  display: flex; align-items: center; justify-content: space-between; height: 52px;
+.topbar-logo {{ font-size: 17px; font-weight: 700; letter-spacing: -.2px; color: var(--text); }}
+.topbar-tabs {{ display: flex; gap: 6px; flex:1; }}
+.tab-pill {{
+  padding: 6px 16px; border-radius: 980px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .18s; border: none; outline: none;
+  background: transparent; color: var(--text3); font-family: inherit;
+  white-space: nowrap;
 }}
-.nav-title {{ font-size: 19px; font-weight: 600; letter-spacing: -.2px; }}
-.nav-badge {{ font-size: 12px; color: var(--secondary); }}
+.tab-pill:hover {{ color: var(--text2); background: var(--surface3); }}
+.tab-pill.active {{ background: var(--surface3); color: var(--text); font-weight: 600; }}
+.topbar-actions {{ display: flex; gap: 10px; align-items: center; }}
+.topbar-date {{ font-size: 12px; color: var(--text3); }}
 
-/* ── Main content ────────────────────────────────────────── */
-.container {{ max-width: 1200px; margin: 0 auto; padding: 32px 32px 60px; }}
+/* ── Content ──────────────────────────────────────────────── */
+.content {{ flex:1; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; }}
 
-/* ── Hero ───────────────────────────────────────────────── */
-.hero {{ margin-bottom: 36px; }}
-.hero h1 {{ font-size: 40px; font-weight: 700; letter-spacing: -.5px; line-height: 1.12; margin-bottom: 8px; }}
-.hero p {{ font-size: 17px; color: var(--secondary); }}
+/* ── Two-column section ──────────────────────────────────── */
+.twocol {{ display: flex; gap: 24px; }}
+.col-left {{ flex: 1.2; display: flex; flex-direction: column; gap: 24px; min-width: 0; }}
+.col-right {{ flex: 0.8; min-width: 320px; }}
 
-/* ── Select ─────────────────────────────────────────────── */
-.select-row {{ display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }}
-.select-row label {{ font-size: 15px; font-weight: 500; color: var(--text); }}
-.kw-select {{
-  appearance: none; -webkit-appearance: none;
-  background: var(--card); border: 1px solid var(--separator);
-  border-radius: 980px; padding: 8px 36px 8px 16px;
-  font-size: 15px; font-family: inherit; color: var(--text);
-  cursor: pointer; outline: none; min-width: 180px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 14px center;
-  transition: border-color .15s, box-shadow .15s;
+/* ── Stacked cards ───────────────────────────────────────── */
+.stacked-area {{ position: relative; padding: 8px 0 8px 40px; }}
+.stack-card {{
+  background: var(--surface2); border-radius: var(--radius);
+  padding: 22px 24px; box-shadow: var(--shadow-card);
+  position: relative; transition: transform .2s, box-shadow .2s;
+  border: 1px solid var(--border);
 }}
-.kw-select:focus {{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,.15); }}
+.stack-card:hover {{ transform: translateY(-2px); box-shadow: var(--shadow-lg); }}
+.stack-card:nth-child(1) {{ z-index:4; }}
+.stack-card:nth-child(2) {{ z-index:3; margin-top: -16px; margin-left: 12px; }}
+.stack-card:nth-child(3) {{ z-index:2; margin-top: -16px; margin-left: 24px; }}
+.stack-card:nth-child(4) {{ z-index:1; margin-top: -16px; margin-left: 36px; }}
+.stack-inner {{ display: flex; align-items: center; justify-content: space-between; }}
+.stack-label {{ font-size: 13px; font-weight: 500; color: var(--text3); letter-spacing: .3px; text-transform: uppercase; }}
+.stack-value {{ font-size: 28px; font-weight: 700; letter-spacing: -.6px; }}
+.stack-value.lav {{ color: var(--lavender); }}
+.stack-value.mint {{ color: var(--mint); }}
+.stack-value.cream {{ color: var(--cream); }}
+.stack-value.rose {{ color: var(--rose); }}
 
-/* ── Stats grid ─────────────────────────────────────────── */
-.stats {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }}
-.stat {{
-  background: var(--card); border-radius: var(--radius); padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04); transition: box-shadow .2s;
+/* ── Table ───────────────────────────────────────────────── */
+.table-card {{
+  background: var(--surface); border-radius: var(--radius);
+  padding: 20px 24px; box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
 }}
-.stat:hover {{ box-shadow: 0 4px 16px rgba(0,0,0,.06); }}
-.stat-label {{ font-size: 13px; font-weight: 500; color: var(--secondary); margin-bottom: 4px; letter-spacing: -.1px; }}
-.stat-value {{ font-size: 34px; font-weight: 700; letter-spacing: -.8px; line-height: 1.1; }}
-.stat-sub {{ font-size: 13px; color: var(--tertiary); margin-top: 2px; }}
+.table-card h3 {{ font-size: 15px; font-weight: 600; margin-bottom: 14px; color: var(--text2); }}
+.table-wrap {{ width: 100%; }}
+.table-wrap table {{ width: 100%; border-collapse: collapse; }}
+.table-wrap th {{
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .5px; padding: 8px 12px 10px;
+  border-bottom: 1px solid var(--border);
+}}
+.table-wrap td {{
+  padding: 10px 12px; font-size: 13px; color: var(--text2);
+  border: none;
+}}
+.table-wrap tr:nth-child(even) td {{ background: rgba(255,255,255,.015); }}
+.table-wrap .rank {{ color: var(--text3); font-size: 12px; font-weight: 500; width: 32px; }}
+.table-wrap .count {{ color: var(--lavender); font-weight: 600; text-align: right; }}
 
-/* ── Chart grid ─────────────────────────────────────────── */
-.chart-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
+/* ── Hero card (right column) ────────────────────────────── */
+.hero-card {{
+  background: var(--surface2); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); border: 1px solid var(--border);
+  position: relative; overflow: visible; height: 100%;
+  display: flex; flex-direction: column;
+}}
+/* Concave notch */
+.hero-card::before {{
+  content: ''; position: absolute; top: -28px; left: 50%; transform: translateX(-50%);
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--bg);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.3);
+  z-index: 2;
+}}
+.hero-card-inner {{
+  flex:1; padding: 36px 24px 24px; display: flex; flex-direction: column;
+}}
+.hero-card h3 {{ font-size: 15px; font-weight: 600; margin-bottom: 4px; }}
+.hero-card .hero-sub {{ font-size: 12px; color: var(--text3); margin-bottom: 16px; }}
+.hero-visual {{ flex:1; min-height: 360px; }}
+
+/* ── Chart grid (full width, below two-column) ───────────── */
+.chart-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }}
 .chart-card {{
-  background: var(--card); border-radius: var(--radius); padding: 20px 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04); transition: box-shadow .2s;
+  background: var(--surface); border-radius: var(--radius);
+  padding: 20px 24px; box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
 }}
-.chart-card:hover {{ box-shadow: 0 4px 16px rgba(0,0,0,.06); }}
 .chart-card.full {{ grid-column: 1 / -1; }}
-.chart-card h3 {{ font-size: 16px; font-weight: 600; margin-bottom: 4px; letter-spacing: -.2px; }}
-.chart-card .chart-sub {{ font-size: 12px; color: var(--tertiary); margin-bottom: 12px; }}
-.chart-box {{ width: 100%; height: 340px; }}
-.chart-box.tall {{ height: 400px; }}
+.chart-card h3 {{ font-size: 15px; font-weight: 600; margin-bottom: 2px; }}
+.chart-card .chart-sub {{ font-size: 12px; color: var(--text3); margin-bottom: 12px; }}
+.chart-box {{ width: 100%; height: 320px; }}
+.chart-box.tall {{ height: 370px; }}
 
-/* ── Footer ─────────────────────────────────────────────── */
-.footer {{ text-align: center; padding: 24px; color: var(--tertiary); font-size: 12px; }}
+/* ── Diffuse shadow bottom ────────────────────────────────── */
+.diffuse-shadow {{
+  position: fixed; bottom: -60px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 120px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(184,169,212,.08) 0%, transparent 70%);
+  pointer-events: none; z-index: -1;
+}}
 
-/* ── Empty state ─────────────────────────────────────────── */
-.empty {{ display: flex; align-items: center; justify-content: center; height: 200px; color: var(--tertiary); font-size: 15px; }}
+/* ── Semi-transparent pill labels ────────────────────────── */
+.tag-pill {{
+  display: inline-block; padding: 3px 12px; border-radius: 980px;
+  font-size: 12px; font-weight: 500;
+  background: rgba(255,255,255,.08); color: var(--text2);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}}
 
-@media (max-width: 900px) {{
-  .stats {{ grid-template-columns: repeat(2, 1fr); }}
+@media (max-width: 1000px) {{
+  .twocol {{ flex-direction: column; }}
+  .col-right {{ min-width: 0; }}
   .chart-grid {{ grid-template-columns: 1fr; }}
-  .hero h1 {{ font-size: 28px; }}
-  .container {{ padding: 20px 16px 40px; }}
+  .stacked-area {{ padding-left: 20px; }}
+  .side {{ display: none; }}
+  .topbar {{ padding: 0 16px; }}
+  .content {{ padding: 20px 16px 32px; }}
 }}
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <span class="nav-title">Auto Offer</span>
-    <span class="nav-badge">岗位分析</span>
+<!-- Sidebar -->
+<aside class="side">
+  <div class="side-icon active" title="仪表盘" data-nav="0">📊</div>
+  <div class="side-icon" title="薪资分析" data-nav="1">💰</div>
+  <div class="side-icon" title="公司分布" data-nav="2">🏢</div>
+  <div class="side-icon" title="关键词" data-nav="3">🔑</div>
+  <div class="side-icon" title="散点对比" data-nav="4">📈</div>
+  <div class="side-icon" title="数据导出" data-nav="5">⚙</div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+<!-- Top bar -->
+<div class="topbar">
+  <span class="topbar-logo">Auto Offer</span>
+  <div class="topbar-tabs" id="tab-bar"></div>
+  <div class="topbar-actions">
+    <span class="topbar-date">{dashboard['generated_at']}</span>
   </div>
-</nav>
-
-<div class="container">
-
-<div class="hero">
-  <h1>岗位数据分析</h1>
-  <p>了解市场全貌，做出更好的求职决策</p>
 </div>
 
-<div class="select-row">
-  <label for="kw-select">关键词</label>
-  <select class="kw-select" id="kw-select"></select>
+<!-- Content -->
+<div class="content">
+
+<!-- Two-column: stacked cards + table | hero card -->
+<div class="twocol">
+  <div class="col-left">
+    <div class="stacked-area" id="stacked-cards"></div>
+    <div class="table-card">
+      <h3>热门公司</h3>
+      <div class="table-wrap">
+        <table><thead><tr><th>#</th><th>公司</th><th>岗位数</th></tr></thead>
+        <tbody id="company-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="col-right">
+    <div class="hero-card">
+      <div class="hero-card-inner">
+        <h3>岗位关键词云</h3>
+        <div class="hero-sub">JD 描述中的高频技能词</div>
+        <div class="hero-visual" id="chart-wordcloud"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="stats" id="stats-row"></div>
-
+<!-- Charts -->
 <div class="chart-grid" id="chart-grid"></div>
 
-<div class="footer">Auto Offer · 数据来源 BOSS直聘 · 生成于 {dashboard['generated_at']}</div>
-
 </div>
+</div>
+
+<div class="diffuse-shadow"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-//  Data
+//  Data & palette
 // ═══════════════════════════════════════════════════════════════
 var D = {raw_json};
+var P = ['#b8a9d4','#7ecba1','#f0d78c','#e8998d','#8ecae6','#c4b5e0','#a0d8b8','#f5e2a8','#edb0a7','#a8d6ed'];
 
 // ═══════════════════════════════════════════════════════════════
-//  Chart color palette
+//  Dark chart theme
 // ═══════════════════════════════════════════════════════════════
-var P = ['#0071e3','#34c759','#ff9500','#af52de','#ff2d55','#5ac8fa','#5856d6','#ff9f0a','#30d158','#0a84ff'];
-
-// ═══════════════════════════════════════════════════════════════
-//  Helpers
-// ═══════════════════════════════════════════════════════════════
-function chartTheme() {{
+function dTheme() {{
   return {{
     tooltip: {{
-      backgroundColor: 'rgba(29,29,31,.94)',
-      borderColor: 'transparent',
-      borderRadius: 10,
-      padding: [10,14],
-      textStyle: {{ color: '#fff', fontSize: 13, fontWeight: 400 }},
-      extraCssText: 'backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);'
+      backgroundColor: 'rgba(30,27,36,.96)',
+      borderColor: '#302c39', borderRadius: 14, padding: [10,14],
+      textStyle: {{ color: '#fff', fontSize: 13 }}
     }}
+  }};
+}}
+function dAxis() {{
+  return {{
+    axisTick: {{ show: false }},
+    axisLine: {{ lineStyle: {{ color: '#302c39' }} }},
+    splitLine: {{ lineStyle: {{ color: '#25222d' }} }},
+    axisLabel: {{ color: '#787380', fontSize: 10 }},
+    nameTextStyle: {{ color: '#b0acb9', fontSize: 11 }}
   }};
 }}
 
 // ═══════════════════════════════════════════════════════════════
-//  Chart renderers — each takes (dom, data)
+//  Chart renderers
 // ═══════════════════════════════════════════════════════════════
 var charts = {{}};
 
 charts.salary = function(dom, d) {{
   var bins = ['0-3k','3-5k','5-8k','8-12k','12-18k','18-25k','25k+'];
-  var vals = bins.map(function(b){{ return d.salary_bins[b] || 0; }});
+  var vals = bins.map(function(b){{return d.salary_bins[b]||0;}});
   var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
-    grid: {{ left: 44, right: 20, top: 12, bottom: 28 }},
-    xAxis: {{
-      type: 'category', data: bins,
-      axisTick: {{ show: false }},
-      axisLine: {{ lineStyle: {{ color: '#d2d2d7' }} }},
-      axisLabel: {{ color: '#86868b', fontSize: 11 }}
-    }},
-    yAxis: {{
-      type: 'value', name: '岗位数',
-      nameTextStyle: {{ color: '#aeaeb2', fontSize: 11 }},
-      splitLine: {{ lineStyle: {{ color: '#f5f5f7' }} }},
-      axisLabel: {{ color: '#aeaeb2', fontSize: 10 }}
-    }},
+  inst.setOption(Object.assign(dTheme(), {{
+    grid: {{ left:44, right:20, top:12, bottom:28 }},
+    xAxis: Object.assign({{ type:'category', data:bins }}, dAxis()),
+    yAxis: Object.assign({{ type:'value', name:'岗位数' }}, dAxis()),
     series: [{{
-      type: 'bar', data: vals,
+      type:'bar', data:vals, barWidth:'48%',
       itemStyle: {{
         borderRadius: [6,6,0,0],
         color: new echarts.graphic.LinearGradient(0,0,0,1,[
-          {{offset:0,color:'#0071e3'}},{{offset:1,color:'#5ac8fa'}}
+          {{offset:0,color:'#b8a9d4'}},{{offset:1,color:'#8ecae6'}}
         ])
-      }},
-      barWidth: '48%', emphasis: {{ itemStyle: {{ color: '#0077ed' }} }}
+      }}
     }}]
   }}));
   return inst;
 }};
 
 charts.experience = function(dom, d) {{
-  var data = Object.entries(d.exp_counts).map(function(e){{ return {{name:e[0],value:e[1]}}; }});
+  var data = Object.entries(d.exp_counts).map(function(e){{return{{name:e[0],value:e[1]}};}});
   var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
+  inst.setOption(Object.assign(dTheme(), {{
     color: P,
     series: [{{
-      type: 'pie', radius: ['50%','78%'], center: ['50%','54%'],
-      data: data, label: {{ fontSize: 11, color: '#86868b', formatter: '{{b}}\\n{{d}}%' }},
-      emphasis: {{ label: {{ fontSize: 15, fontWeight: '600' }} }},
-      itemStyle: {{ borderColor: '#fff', borderWidth: 2 }}
+      type:'pie', radius:['48%','76%'], center:['50%','54%'], data:data,
+      label: {{ fontSize:11, color:'#b0acb9', formatter:'{{b}}\\n{{d}}%' }},
+      emphasis: {{ label:{{ fontSize:15, fontWeight:'bold', color:'#fff' }} }},
+      itemStyle: {{ borderColor:'#1e1b24', borderWidth:2 }}
     }}]
   }}));
   return inst;
 }};
 
 charts.education = function(dom, d) {{
-  var data = Object.entries(d.edu_counts).map(function(e){{ return {{name:e[0],value:e[1]}}; }});
+  var data = Object.entries(d.edu_counts).map(function(e){{return{{name:e[0],value:e[1]}};}});
   var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
+  inst.setOption(Object.assign(dTheme(), {{
     color: P,
     series: [{{
-      type: 'pie', radius: ['50%','78%'], center: ['50%','54%'],
-      data: data, label: {{ fontSize: 11, color: '#86868b', formatter: '{{b}}\\n{{d}}%' }},
-      emphasis: {{ label: {{ fontSize: 15, fontWeight: '600' }} }},
-      itemStyle: {{ borderColor: '#fff', borderWidth: 2 }}
+      type:'pie', radius:['48%','76%'], center:['50%','54%'], data:data,
+      label: {{ fontSize:11, color:'#b0acb9', formatter:'{{b}}\\n{{d}}%' }},
+      emphasis: {{ label:{{ fontSize:15, fontWeight:'bold', color:'#fff' }} }},
+      itemStyle: {{ borderColor:'#1e1b24', borderWidth:2 }}
     }}]
   }}));
   return inst;
@@ -376,69 +482,16 @@ charts.education = function(dom, d) {{
 
 charts.type = function(dom, d) {{
   var map = {{'月薪':'月薪','日薪':'日薪','时薪':'时薪','面议':'面议'}};
-  var data = Object.entries(d.salary_types).map(function(e){{ return {{name:map[e[0]]||e[0]||'其他',value:e[1]}}; }});
+  var data = Object.entries(d.salary_types).map(function(e){{return{{name:map[e[0]]||e[0]||'其他',value:e[1]}};}});
   var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
-    color: [P[0],P[1],P[2],'#aeaeb2'],
+  inst.setOption(Object.assign(dTheme(), {{
+    color: P,
     series: [{{
-      type: 'pie', roseType: 'area', radius: ['38%','78%'], center: ['50%','54%'],
-      data: data, label: {{ fontSize: 11, color: '#86868b' }},
-      itemStyle: {{ borderColor: '#fff', borderWidth: 2 }}
+      type:'pie', roseType:'area', radius:['36%','76%'], center:['50%','54%'], data:data,
+      label: {{ fontSize:11, color:'#b0acb9' }},
+      itemStyle: {{ borderColor:'#1e1b24', borderWidth:2 }}
     }}]
   }}));
-  return inst;
-}};
-
-charts.company = function(dom, d) {{
-  var names = d.top_companies.map(function(c){{return c[0];}}).reverse();
-  var counts = d.top_companies.map(function(c){{return c[1];}}).reverse();
-  var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
-    grid: {{ left: 130, right: 24, top: 8, bottom: 16 }},
-    xAxis: {{
-      type: 'value', splitLine: {{ lineStyle: {{ color: '#f5f5f7' }} }},
-      axisLabel: {{ color: '#aeaeb2', fontSize: 10 }}
-    }},
-    yAxis: {{
-      type: 'category', data: names,
-      axisLine: {{ show: false }}, axisTick: {{ show: false }},
-      axisLabel: {{ fontSize: 11, color: '#1d1d1f', width: 114, overflow: 'truncate' }}
-    }},
-    series: [{{
-      type: 'bar', data: counts,
-      itemStyle: {{
-        borderRadius: [0,6,6,0],
-        color: new echarts.graphic.LinearGradient(0,0,1,0,[
-          {{offset:0,color:'#5856d6'}},{{offset:1,color:'#af52de'}}
-        ])
-      }},
-      barWidth: '58%'
-    }}]
-  }}));
-  return inst;
-}};
-
-charts.wordcloud = function(dom, d) {{
-  var data = d.top_words.map(function(w){{ return {{name:w[0],value:w[1]}}; }});
-  var inst = echarts.init(dom);
-  inst.setOption({{
-    tooltip: {{
-      backgroundColor: 'rgba(29,29,31,.94)', borderColor: 'transparent',
-      borderRadius: 10, padding: [10,14],
-      textStyle: {{ color: '#fff', fontSize: 13 }},
-      formatter: '{{b}}: {{c}} 次'
-    }},
-    series: [{{
-      type: 'wordCloud', shape: 'circle', sizeRange: [14,50],
-      rotationRange: [-25,25], gridSize: 6, drawOutOfBound: false,
-      layoutAnimation: true, keepAspect: true,
-      textStyle: {{
-        fontFamily: '-apple-system, PingFang SC, sans-serif', fontWeight: '500',
-        color: function(){{ var h=Math.round(Math.random()*60+200); return 'hsl('+h+',55%,45%)'; }}
-      }},
-      data: data
-    }}]
-  }});
   return inst;
 }};
 
@@ -452,67 +505,103 @@ charts.scatter = function(dom, d) {{
     series[p.experience].push({{value:[p.experience,p.salary],title:p.title,company:p.company}});
   }});
   var inst = echarts.init(dom);
-  inst.setOption(Object.assign(chartTheme(), {{
-    grid: {{ left: 56, right: 28, top: 16, bottom: 54 }},
-    xAxis: {{
-      type: 'category', name: '经验要求',
-      nameTextStyle: {{ color: '#aeaeb2', fontSize: 11 }},
-      axisLabel: {{ rotate: 22, fontSize: 10, color: '#86868b' }},
-      axisTick: {{ show: false }},
-      axisLine: {{ lineStyle: {{ color: '#d2d2d7' }} }}
-    }},
-    yAxis: {{
-      type: 'value', name: '薪资 (K/月)',
-      nameTextStyle: {{ color: '#aeaeb2', fontSize: 11 }},
-      splitLine: {{ lineStyle: {{ color: '#f5f5f7' }} }},
-      axisLabel: {{ color: '#aeaeb2', fontSize: 10 }}, min: 0
-    }},
+  inst.setOption(Object.assign(dTheme(), {{
+    grid: {{ left:56, right:24, top:16, bottom:54 }},
+    xAxis: Object.assign({{ type:'category', name:'经验要求', axisLabel:{{rotate:22,fontSize:10}} }}, dAxis()),
+    yAxis: Object.assign({{ type:'value', name:'薪资 (K/月)', min:0 }}, dAxis()),
     series: Object.entries(series).map(function(e){{
       return {{
-        name: e[0], type: 'scatter', data: e[1],
-        symbolSize: function(v){{ return 5+Math.random()*6; }},
-        itemStyle: {{ color: expCol[e[0]], opacity: .7 }},
-        emphasis: {{ focus: 'series', scale: 1.6 }}
+        name:e[0], type:'scatter', data:e[1],
+        symbolSize: function(v){{return 5+Math.random()*6;}},
+        itemStyle: {{ color:expCol[e[0]], opacity:.75 }},
+        emphasis: {{ focus:'series', scale:1.6 }}
       }};
     }})
   }}));
   return inst;
 }};
 
+charts.wordcloud = function(dom, d) {{
+  var data = d.top_words.map(function(w){{return{{name:w[0],value:w[1]}};}});
+  var inst = echarts.init(dom);
+  inst.setOption({{
+    tooltip: {{
+      backgroundColor: 'rgba(30,27,36,.96)', borderColor: '#302c39',
+      borderRadius: 14, padding: [10,14],
+      textStyle: {{ color:'#fff', fontSize:13 }}, formatter:'{{b}}: {{c}} 次'
+    }},
+    series: [{{
+      type:'wordCloud', shape:'circle', sizeRange:[14,50],
+      rotationRange:[-25,25], gridSize:6, drawOutOfBound:false,
+      layoutAnimation:true, keepAspect:true,
+      textStyle: {{
+        fontFamily: 'Inter, PingFang SC, sans-serif', fontWeight:'600',
+        color: function(){{ var h=Math.round(Math.random()*40+250); return 'hsl('+h+',50%,65%)'; }}
+      }},
+      data:data
+    }}]
+  }});
+  return inst;
+}};
+
 // ═══════════════════════════════════════════════════════════════
-//  Stats renderer
+//  UI renderers
 // ═══════════════════════════════════════════════════════════════
-function renderStats(d) {{
-  document.getElementById('stats-row').innerHTML =
-    '<div class="stat"><div class="stat-label">岗位总数</div><div class="stat-value" style="color:var(--accent)">'+d.total+'</div><div class="stat-sub">条</div></div>' +
-    '<div class="stat"><div class="stat-label">覆盖公司</div><div class="stat-value" style="color:var(--green)">'+d.companies+'</div><div class="stat-sub">家</div></div>' +
-    '<div class="stat"><div class="stat-label">月薪均价</div><div class="stat-value" style="color:var(--orange)">'+d.avg_salary+'</div><div class="stat-sub">K</div></div>' +
-    '<div class="stat"><div class="stat-label">月薪岗位</div><div class="stat-value" style="color:var(--purple)">'+d.monthly_count+'</div><div class="stat-sub">条</div></div>';
+function renderStackedCards(d) {{
+  var cards = [
+    {{ label:'岗位总数', value:d.total, cls:'lav', sub:'条' }},
+    {{ label:'覆盖公司', value:d.companies, cls:'mint', sub:'家' }},
+    {{ label:'月薪均价', value:d.avg_salary, cls:'cream', sub:'K' }},
+    {{ label:'月薪岗位', value:d.monthly_count, cls:'rose', sub:'条' }},
+  ];
+  var html = '';
+  cards.forEach(function(c){{
+    html += '<div class="stack-card"><div class="stack-inner"><div><div class="stack-label">'+c.label+'</div></div><div class="stack-value '+c.cls+'">'+c.value+'<span style="font-size:14px;font-weight:400;color:var(--text3);margin-left:4px">'+c.sub+'</span></div></div></div>';
+  }});
+  document.getElementById('stacked-cards').innerHTML = html;
+}}
+
+function renderTable(d) {{
+  var rows = '';
+  d.top_companies.forEach(function(c,i){{
+    rows += '<tr><td class="rank">'+(i+1)+'</td><td>'+c[0]+'</td><td class="count">'+c[1]+'</td></tr>';
+  }});
+  document.getElementById('company-tbody').innerHTML = rows;
 }}
 
 // ═══════════════════════════════════════════════════════════════
-//  Chart grid structure (extensible — add a div + renderer above)
+//  Chart grid structure
 // ═══════════════════════════════════════════════════════════════
 var CHART_DEFS = [
-  {{ id:'chart-salary',    title:'薪资分布',     sub:'月薪岗位的薪资区间分布',     renderer:'salary',    cls:'' }},
-  {{ id:'chart-experience',title:'经验要求',     sub:'招聘要求的工作经验年限',     renderer:'experience',cls:'' }},
-  {{ id:'chart-education', title:'学历要求',     sub:'招聘要求的学历层次',         renderer:'education', cls:'' }},
-  {{ id:'chart-type',     title:'薪资类型',     sub:'月薪、日薪、时薪、面议占比',   renderer:'type',      cls:'' }},
-  {{ id:'chart-company',  title:'热门公司',     sub:'发布岗位最多的公司 TOP15',    renderer:'company',   cls:'tall' }},
-  {{ id:'chart-wordcloud',title:'岗位关键词',   sub:'JD 描述中的高频技能词',       renderer:'wordcloud', cls:'tall' }},
-  {{ id:'chart-scatter',  title:'薪资 vs 经验', sub:'不同经验水平的薪资分布',      renderer:'scatter',   cls:'full' }},
+  {{ id:'chart-salary',    title:'薪资分布',     sub:'月薪岗位的薪资区间分布',     renderer:'salary'    }},
+  {{ id:'chart-experience',title:'经验要求',     sub:'招聘要求的工作经验年限',     renderer:'experience'}},
+  {{ id:'chart-education', title:'学历要求',     sub:'招聘要求的学历层次',         renderer:'education' }},
+  {{ id:'chart-type',     title:'薪资类型',     sub:'月薪、日薪、时薪、面议占比', renderer:'type'      }},
+  {{ id:'chart-scatter',  title:'薪资 vs 经验', sub:'不同经验水平的薪资分布',     renderer:'scatter', cls:'full' }},
 ];
 
 function buildChartGrid() {{
   var html = '';
   CHART_DEFS.forEach(function(def){{
-    html += '<div class="chart-card'+(def.cls==='full'?' full':'')+'">';
+    var cls = def.cls || '';
+    html += '<div class="chart-card'+(cls==='full'?' full':'')+'">';
     html += '<h3>'+def.title+'</h3>';
     html += '<div class="chart-sub">'+def.sub+'</div>';
-    html += '<div class="chart-box'+(def.cls==='tall'?' tall':'')+'" id="'+def.id+'"></div>';
+    html += '<div class="chart-box" id="'+def.id+'"></div>';
     html += '</div>';
   }});
   document.getElementById('chart-grid').innerHTML = html;
+}}
+
+// ═══════════════════════════════════════════════════════════════
+//  Tabs
+// ═══════════════════════════════════════════════════════════════
+function buildTabs() {{
+  var html = '';
+  D.keywords.forEach(function(kw,i){{
+    html += '<button class="tab-pill'+(i===0?' active':'')+'" data-kw="'+kw+'">'+kw+'</button>';
+  }});
+  document.getElementById('tab-bar').innerHTML = html;
 }}
 
 // ═══════════════════════════════════════════════════════════════
@@ -524,16 +613,20 @@ function renderAll(keyword) {{
   var d = D.data[keyword];
   if (!d) return;
 
-  // Dispose old chart instances
   activeInstances.forEach(function(inst){{ inst.dispose(); }});
   activeInstances = [];
 
-  renderStats(d);
+  renderStackedCards(d);
+  renderTable(d);
 
+  // Word cloud in hero card
+  var wcDom = document.getElementById('chart-wordcloud');
+  activeInstances.push(charts.wordcloud(wcDom, d));
+
+  // Grid charts
   CHART_DEFS.forEach(function(def){{
     var dom = document.getElementById(def.id);
-    var inst = charts[def.renderer](dom, d);
-    activeInstances.push(inst);
+    if (dom) activeInstances.push(charts[def.renderer](dom, d));
   }});
 }}
 
@@ -541,21 +634,35 @@ function renderAll(keyword) {{
 //  Init
 // ═══════════════════════════════════════════════════════════════
 (function init() {{
-  // Build select options
-  var sel = document.getElementById('kw-select');
-  D.keywords.forEach(function(kw){{
-    var opt = document.createElement('option');
-    opt.value = kw;
-    opt.textContent = kw + (kw !== '全部' ? '' : ' (' + D.data['全部'].total + ' 条)');
-    sel.appendChild(opt);
-  }});
-  sel.addEventListener('change', function(){{ renderAll(this.value); }});
-
-  // Build chart grid
+  buildTabs();
   buildChartGrid();
-
-  // Initial render
   renderAll('全部');
+
+  // Tab clicks
+  document.getElementById('tab-bar').addEventListener('click', function(e){{
+    if (e.target.classList.contains('tab-pill')) {{
+      var kw = e.target.dataset.kw;
+      document.querySelectorAll('.tab-pill').forEach(function(b){{b.classList.remove('active');}});
+      e.target.classList.add('active');
+      renderAll(kw);
+    }}
+  }});
+
+  // Sidebar clicks — scroll to sections or switch tabs
+  document.querySelector('.side').addEventListener('click', function(e){{
+    var icon = e.target.closest('.side-icon');
+    if (!icon) return;
+    document.querySelectorAll('.side-icon').forEach(function(s){{s.classList.remove('active');}});
+    icon.classList.add('active');
+    var navIdx = parseInt(icon.dataset.nav);
+    if (navIdx === 0) {{
+      window.scrollTo({{top:0,behavior:'smooth'}});
+    }} else {{
+      var chartIds = ['','chart-salary','chart-company','chart-wordcloud','chart-scatter'];
+      var target = document.getElementById(chartIds[navIdx]);
+      if (target) target.scrollIntoView({{behavior:'smooth',block:'center'}});
+    }}
+  }});
 
   // Resize
   window.addEventListener('resize', function(){{
