@@ -251,15 +251,15 @@ function socialTemplate(item, idx, prefix) {
 function fld(l) { return '<div class="field"><label>'+l+'</label>'; }
 function inp(path, val, type, placeholder) {
   var t = type||'text';
-  return fld('')+'<input type="'+t+'" value="'+esc(val)+'" placeholder="'+(placeholder||'')+'" onchange="setVal(\''+path+'\',this.value)" oninput="setVal(\''+path+'\',this.value)"></div>';
+  return '<input type="'+t+'" value="'+esc(val)+'" placeholder="'+(placeholder||'')+'" onchange="setVal(\''+path+'\',this.value)" oninput="setVal(\''+path+'\',this.value)"></div>';
 }
 function txt(path, val, placeholder) {
-  return fld('')+'<textarea placeholder="'+(placeholder||'')+'" onchange="setVal(\''+path+'\',this.value)" oninput="setVal(\''+path+'\',this.value)">'+esc(val)+'</textarea></div>';
+  return '<textarea placeholder="'+(placeholder||'')+'" onchange="setVal(\''+path+'\',this.value)" oninput="setVal(\''+path+'\',this.value)">'+esc(val)+'</textarea></div>';
 }
 function sel(path, val, opts) {
   var h = '';
-  opts.forEach(function(o){ h += '<option value="'+o+'"'+(o===val?' selected':'')+'>'+o+'</option>'; });
-  return fld('')+'<select onchange="setVal(\''+path+'\',this.value)">'+h+'</select></div>';
+  opts.forEach(function(o){ h += '<option value="'+o+'"'+(o===val?' selected':'')+'>'+(o||'请选择')+'</option>'; });
+  return '<select onchange="setVal(\''+path+'\',this.value)">'+h+'</select></div>';
 }
 function frow(l,r) { return '<div class="field-row">'+l+r+'</div>'; }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
