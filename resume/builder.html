@@ -6,356 +6,229 @@
 <title>简历生成器 — Auto Offer</title>
 <style>
 /* ═══════════════════════════════════════════════════════════════
-   Design tokens — extracted from the NFT dashboard reference
+   Design tokens
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  --app-bg-1: #c8c0d0;
-  --app-bg-2: #ddd5e0;
-  --app-bg-3: #c5c0d0;
-  --shell: #25222d;
-  --shell-dark: #1e1b26;
-  --card: #2d2a35;
-  --card-hover: #353240;
-  --input-bg: #363240;
-  --border: #3d3847;
-  --border-light: #4a4555;
-  --text: #ffffff;
-  --text-secondary: #a8a3b3;
-  --text-tertiary: #6e687a;
-  --lavender: #c4b5e0;
-  --lavender-soft: rgba(196,181,224,.12);
-  --mint: #9dd3b3;
-  --mint-soft: rgba(157,211,179,.12);
-  --cream: #f0e0a0;
-  --cream-soft: rgba(240,224,160,.12);
-  --rose: #e8b0a8;
-  --rose-soft: rgba(232,176,168,.12);
-  --radius-xl: 28px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --radius-pill: 999px;
+  --bg:#141118; --surface:#1e1b24; --surface2:#25222d; --surface3:#2d2936;
+  --border:#302c39; --text:#fff; --text2:#b0acb9; --text3:#787380;
+  --lavender:#b8a9d4; --mint:#7ecba1; --cream:#f0d78c; --rose:#e8998d;
+  --radius:18px; --radius-sm:12px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: linear-gradient(135deg, var(--app-bg-1) 0%, var(--app-bg-2) 50%, var(--app-bg-3) 100%);
-  color: var(--text);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.5;
+  -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; height:100vh; overflow:hidden;
 }
 
-.app-wrapper {
-  width: 100%;
-  max-width: 1600px;
-  height: calc(100vh - 48px);
-  background: var(--shell);
-  border-radius: var(--radius-xl);
-  box-shadow: 0 24px 80px rgba(30,27,38,.35), 0 8px 24px rgba(30,27,38,.2), inset 0 1px 0 rgba(255,255,255,.04);
-  display: flex;
-  overflow: hidden;
+/* Top bar */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.topbar-left h1 { font-size:16px; font-weight:600; }
+.topbar-right { display:flex; align-items:center; gap:8px; }
+
+/* Template picker */
+.tpl-group { display:flex; gap:2px; background:var(--surface2); border-radius:10px; padding:3px; }
+.tpl-btn { padding:5px 12px; border-radius:8px; border:none; background:transparent; color:var(--text2); cursor:pointer; font-size:12px; font-family:inherit; font-weight:500; transition:all .15s; white-space:nowrap; }
+.tpl-btn:hover { color:var(--text); }
+.tpl-btn.active { background:var(--surface3); color:var(--lavender); }
+
+/* Buttons */
+.btn { padding:7px 18px; border-radius:980px; font-size:13px; font-weight:500; cursor:pointer; border:none; font-family:inherit; transition:all .15s; }
+.btn-primary { background:var(--lavender); color:var(--bg); }
+.btn-primary:hover { opacity:.85; }
+.btn-ghost { background:var(--surface3); color:var(--text2); }
+.btn-ghost:hover { background:var(--border); }
+.btn-small { padding:4px 12px; font-size:12px; }
+
+/* Main layout */
+.main { flex:1; display:flex; min-height:0; }
+.editor { width:460px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.editor-body { flex:1; overflow-y:auto; padding:16px 20px; }
+.editor-section { margin-bottom:28px; }
+.editor-section-title { font-size:14px; font-weight:600; color:var(--lavender); margin-bottom:12px; display:flex; align-items:center; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.editor-section-title .sec-icon { font-size:16px; }
+.preview { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:28px; overflow-y:auto; background:var(--bg); }
+
+/* Form elements */
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:12px; font-weight:500; color:var(--text3); margin-bottom:4px; text-transform:uppercase; letter-spacing:.3px; }
+.field input, .field textarea, .field select {
+  width:100%; padding:9px 14px; border-radius:var(--radius-sm); font-size:14px; font-family:inherit;
+  background:var(--surface2); border:1px solid var(--border); color:var(--text);
+  outline:none; transition:border-color .15s; resize:vertical;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color:var(--lavender); }
+.field textarea { min-height:80px; }
+.field-row { display:flex; gap:10px; }
+.field-row .field { flex:1; }
+
+.list-item { background:var(--surface2); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; border:1px solid var(--border); position:relative; }
+.list-item .remove-btn { position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; background:var(--surface3); border:none; color:var(--text3); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.list-item .remove-btn:hover { background:var(--rose); color:#fff; }
+.add-btn { width:100%; padding:10px; border-radius:var(--radius-sm); border:1px dashed var(--border); background:transparent; color:var(--text3); cursor:pointer; font-size:13px; font-family:inherit; transition:all .15s; }
+.add-btn:hover { border-color:var(--lavender); color:var(--lavender); background:rgba(184,169,212,.06); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Resume paper — base (shared sizing, shadow)
+   ═══════════════════════════════════════════════════════════════ */
+.resume-paper {
+  width:794px; min-height:1123px; background:#fff;
+  box-shadow:0 4px 40px rgba(0,0,0,.5); border-radius:2px;
+  color:#333; font-size:14px; line-height:1.7;
+  font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+  transition:all .3s ease;
 }
 
-.sidebar {
-  width: 72px;
-  background: var(--shell-dark);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 0 16px;
-  flex-shrink: 0;
+/* ═══════════════════════════════════════════════════════════════
+   Template: Classic — 经典传统
+   Centered name, thick section borders, professional ATS style
+   ═══════════════════════════════════════════════════════════════ */
+.resume-paper.tpl-classic { padding:56px 64px; color:#333; }
+.resume-paper.tpl-classic .rp-cl-header { text-align:center; margin-bottom:30px; }
+.resume-paper.tpl-classic .rp-cl-name { font-size:28px; font-weight:700; letter-spacing:2px; color:#1a1a1a; margin-bottom:10px; }
+.resume-paper.tpl-classic .rp-cl-job { font-size:15px; color:#555; margin-bottom:10px; }
+.resume-paper.tpl-classic .rp-cl-contact { font-size:13px; color:#777; display:flex; justify-content:center; gap:20px; flex-wrap:wrap; }
+.resume-paper.tpl-classic .rp-cl-contact span::before { content:'●'; font-size:6px; position:relative; top:-2px; margin-right:8px; color:#bbb; }
+.resume-paper.tpl-classic .rp-cl-contact span:first-child::before { display:none; }
+.resume-paper.tpl-classic .rp-cl-sec { margin-bottom:24px; }
+.resume-paper.tpl-classic .rp-cl-sec-title { font-size:15px; font-weight:700; color:#1a1a1a; border-bottom:2px solid #333; padding-bottom:4px; margin-bottom:12px; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+.resume-paper.tpl-classic .rp-cl-sec-title .sec-decor { font-size:18px; }
+.resume-paper.tpl-classic .rp-cl-item { margin-bottom:14px; padding-left:2px; }
+.resume-paper.tpl-classic .rp-cl-item-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px; }
+.resume-paper.tpl-classic .rp-cl-item-title { font-weight:600; font-size:15px; color:#222; }
+.resume-paper.tpl-classic .rp-cl-item-sub { color:#555; font-size:13px; }
+.resume-paper.tpl-classic .rp-cl-item-date { color:#888; font-size:12px; white-space:nowrap; }
+.resume-paper.tpl-classic .rp-cl-item-desc { color:#444; font-size:13px; margin-top:4px; }
+.resume-paper.tpl-classic .rp-cl-tags { display:flex; flex-wrap:wrap; gap:8px; }
+.resume-paper.tpl-classic .rp-cl-tag { padding:3px 12px; background:#f4f4f4; border:1px solid #e0e0e0; border-radius:3px; font-size:12px; color:#555; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Template: Modern — 现代侧栏
+   Left sidebar with gradient, right content area
+   ═══════════════════════════════════════════════════════════════ */
+.resume-paper.tpl-modern { padding:0; display:flex; }
+.resume-paper.tpl-modern .rp-md-sidebar {
+  width:210px; flex-shrink:0;
+  background:linear-gradient(180deg, #1e3a5f 0%, #2d5a87 40%, #3d7ab5 100%);
+  color:#fff; padding:40px 22px; display:flex; flex-direction:column; gap:28px;
 }
-.logo {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--lavender), var(--mint));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 700; color: var(--shell-dark);
-  margin-bottom: 28px;
-  box-shadow: 0 4px 12px rgba(196,181,224,.25);
+.resume-paper.tpl-modern .rp-md-sidebar .md-avatar {
+  width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,.15);
+  margin:0 auto; display:flex; align-items:center; justify-content:center;
+  font-size:36px; border:3px solid rgba(255,255,255,.2);
 }
-.nav { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; padding: 0 12px; }
-.nav-item {
-  width: 44px; height: 44px; border-radius: 50%; border: none; background: transparent;
-  color: var(--text-tertiary); font-size: 18px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .2s ease; position: relative;
-}
-.nav-item:hover { background: var(--card); color: var(--text-secondary); }
-.nav-item.active { background: var(--card); color: var(--lavender); box-shadow: 0 2px 8px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.04); }
-.nav-item.active::before { content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); width: 3px; height: 20px; background: var(--lavender); border-radius: 0 3px 3px 0; }
-.nav-bottom { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 12px; }
-.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--cream), var(--rose)); display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--shell-dark); margin-top: 8px; }
-
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
-.topbar { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: linear-gradient(180deg, rgba(255,255,255,.02) 0%, transparent 100%); }
-.topbar-left { display: flex; align-items: center; gap: 20px; }
-.topbar-left h1 { font-size: 18px; font-weight: 600; letter-spacing: -.2px; background: linear-gradient(135deg, #fff, var(--lavender)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-
-.tpl-group { display: flex; gap: 6px; background: var(--card); border-radius: var(--radius-pill); padding: 4px; border: 1px solid var(--border); }
-.tpl-btn { padding: 6px 16px; border-radius: var(--radius-pill); border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; transition: all .2s ease; white-space: nowrap; }
-.tpl-btn:hover { color: var(--text-secondary); }
-.tpl-btn.active { background: linear-gradient(135deg, var(--lavender), #b8a8d8); color: var(--shell-dark); box-shadow: 0 2px 8px rgba(196,181,224,.2); }
-
-.btn { padding: 8px 20px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: inherit; transition: all .2s ease; display: inline-flex; align-items: center; gap: 6px; }
-.btn-primary { background: linear-gradient(135deg, var(--lavender), #b8a8d8); color: var(--shell-dark); box-shadow: 0 2px 8px rgba(196,181,224,.2); }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(196,181,224,.35); }
-.btn-ghost { background: var(--card); color: var(--text-secondary); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--card-hover); border-color: var(--border-light); color: var(--text); }
-.btn-small { padding: 6px 14px; font-size: 12px; }
-
-.workspace { flex: 1; display: flex; min-height: 0; padding: 20px 24px 24px; gap: 20px; }
-.editor { width: 420px; flex-shrink: 0; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 4px 20px rgba(0,0,0,.1); display: flex; flex-direction: column; overflow: hidden; }
-.editor-body { flex: 1; overflow-y: auto; padding: 20px 20px 24px; }
-.editor-body::-webkit-scrollbar { width: 5px; }
-.editor-body::-webkit-scrollbar-track { background: transparent; }
-.editor-body::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 999px; }
-.editor-section { margin-bottom: 24px; background: var(--shell); border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--border); transition: border-color .2s ease; }
-.editor-section:hover { border-color: var(--border-light); }
-.editor-section-title { font-size: 13px; font-weight: 600; color: var(--lavender); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-.editor-section-title .sec-icon { font-size: 15px; width: 28px; height: 28px; border-radius: 50%; background: var(--lavender-soft); display: flex; align-items: center; justify-content: center; }
-
-.field { margin-bottom: 12px; }
-.field:last-child { margin-bottom: 0; }
-.field label { display: block; font-size: 11px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
-.field input, .field textarea, .field select { width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; background: var(--input-bg); border: 1px solid var(--border); color: var(--text); outline: none; transition: all .2s ease; resize: vertical; }
-.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--lavender); box-shadow: 0 0 0 3px var(--lavender-soft); }
-.field textarea { min-height: 72px; line-height: 1.6; }
-.field-row { display: flex; gap: 10px; }
-.field-row .field { flex: 1; }
-
-.list-item { background: var(--input-bg); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; transition: all .2s ease; }
-.list-item:hover { border-color: var(--border-light); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-.list-item .remove-btn { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); color: var(--text-tertiary); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .15s ease; }
-.list-item .remove-btn:hover { background: var(--rose-soft); border-color: var(--rose); color: var(--rose); }
-.add-btn { width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1.5px dashed var(--border); background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all .2s ease; }
-.add-btn:hover { border-color: var(--mint); color: var(--mint); background: var(--mint-soft); }
-
-.preview { flex: 1; display: flex; align-items: flex-start; justify-content: center; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 4px 20px rgba(0,0,0,.1); padding: 28px; overflow-y: auto; position: relative; }
-.preview::before { content: ''; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 60px; height: 4px; border-radius: 999px; background: var(--border); opacity: .5; }
-.preview::-webkit-scrollbar { width: 5px; }
-.preview::-webkit-scrollbar-track { background: transparent; }
-.preview::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 999px; }
-
-.resume-paper { width: 794px; min-height: 1123px; background: #fff; box-shadow: 0 8px 40px rgba(0,0,0,.25); border-radius: 3px; color: #333; font-size: 14px; line-height: 1.7; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; transition: all .3s ease; position: relative; z-index: 1; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-name { font-size:22px; font-weight:700; text-align:center; letter-spacing:1px; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-job { font-size:13px; text-align:center; opacity:.85; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-block {}
+.resume-paper.tpl-modern .rp-md-sidebar .md-block-title { font-size:10px; text-transform:uppercase; letter-spacing:2px; opacity:.6; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:4px; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-contact { font-size:12px; line-height:2; opacity:.9; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.resume-paper.tpl-modern .rp-md-sidebar .md-tag { padding:2px 10px; background:rgba(255,255,255,.12); border-radius:10px; font-size:11px; }
+.resume-paper.tpl-modern .rp-md-main { flex:1; padding:40px 36px 40px 32px; color:#1e293b; }
+.resume-paper.tpl-modern .rp-md-sec { margin-bottom:22px; }
+.resume-paper.tpl-modern .rp-md-sec-title { font-size:14px; font-weight:700; color:#1e3a5f; border-left:3px solid #3d7ab5; padding-left:10px; margin-bottom:12px; letter-spacing:1px; display:flex; align-items:center; gap:6px; }
+.resume-paper.tpl-modern .rp-md-sec-title .sec-decor { font-size:14px; }
+.resume-paper.tpl-modern .rp-md-item { margin-bottom:14px; padding-left:13px; border-left:2px solid #e8edf3; }
+.resume-paper.tpl-modern .rp-md-item-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+.resume-paper.tpl-modern .rp-md-item-title { font-weight:600; font-size:14px; color:#1e293b; }
+.resume-paper.tpl-modern .rp-md-item-sub { color:#64748b; font-size:12px; }
+.resume-paper.tpl-modern .rp-md-item-date { color:#94a3b8; font-size:11px; white-space:nowrap; }
+.resume-paper.tpl-modern .rp-md-item-desc { color:#475569; font-size:12.5px; margin-top:3px; }
+.resume-paper.tpl-modern .rp-md-main .rp-md-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.resume-paper.tpl-modern .rp-md-main .rp-md-tag { padding:3px 12px; background:#eff6ff; color:#2563eb; border-radius:12px; font-size:11px; }
 
 /* ═══════════════════════════════════════════════════════════════
-   Template 1 — 蓝色弧形顶栏 + 绿色标签
+   Template: Minimal — 极简留白
+   Split header, thin rules, light weight, generous space
    ═══════════════════════════════════════════════════════════════ */
-.resume-paper.tpl-1 { background: #fff; color: #333; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-size: 13px; line-height: 1.7; }
-.tpl-1-header-top { background: linear-gradient(135deg, #5b9bd5, #4a8fd8); height: 110px; border-radius: 0 0 50% 50% / 0 0 30px 30px; }
-.tpl-1-avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.1); margin: -30px auto 10px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #999; overflow: hidden; }
-.tpl-1-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tpl-1-name { text-align: center; font-size: 22px; font-weight: 600; color: #333; }
-.tpl-1-contact { text-align: center; font-size: 12px; color: #666; margin-top: 6px; }
-.tpl-1-job { text-align: center; font-size: 12px; color: #888; margin-top: 4px; }
-.tpl-1-main { padding: 20px 45px 40px; }
-.tpl-1-sec { margin-bottom: 18px; }
-.tpl-1-sec-title { display: inline-block; background: #5cb85c; color: #fff; padding: 3px 18px; border-radius: 2px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-.tpl-1-item { margin-bottom: 12px; }
-.tpl-1-item-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-.tpl-1-item-title { font-weight: 600; font-size: 13px; color: #333; }
-.tpl-1-item-sub { font-size: 12px; color: #555; }
-.tpl-1-item-date { font-size: 12px; color: #888; white-space: nowrap; margin-left: 10px; }
-.tpl-1-item-loc { font-size: 12px; color: #888; white-space: nowrap; }
-.tpl-1-desc { font-size: 12.5px; color: #444; line-height: 1.8; }
-.tpl-1-bullets { margin: 4px 0 0 0; padding-left: 16px; }
-.tpl-1-bullets li { font-size: 12px; color: #555; margin-bottom: 2px; line-height: 1.6; }
+.resume-paper.tpl-minimal { padding:64px 80px; background:#fafafa; color:#555; }
+.resume-paper.tpl-minimal .rp-mn-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:36px; padding-bottom:20px; border-bottom:1px solid #e0e0e0; }
+.resume-paper.tpl-minimal .rp-mn-name { font-size:24px; font-weight:300; letter-spacing:4px; color:#222; }
+.resume-paper.tpl-minimal .rp-mn-info { text-align:right; }
+.resume-paper.tpl-minimal .rp-mn-job { font-size:13px; color:#999; margin-bottom:6px; }
+.resume-paper.tpl-minimal .rp-mn-contact { font-size:11px; color:#bbb; line-height:1.8; }
+.resume-paper.tpl-minimal .rp-mn-sec { margin-bottom:32px; }
+.resume-paper.tpl-minimal .rp-mn-sec-title { font-size:11px; font-weight:400; color:#999; letter-spacing:4px; text-transform:uppercase; margin-bottom:14px; }
+.resume-paper.tpl-minimal .rp-mn-item { margin-bottom:16px; padding-left:24px; position:relative; }
+.resume-paper.tpl-minimal .rp-mn-item::before { content:''; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:50%; background:#d0d0d0; }
+.resume-paper.tpl-minimal .rp-mn-item-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+.resume-paper.tpl-minimal .rp-mn-item-title { font-weight:500; font-size:14px; color:#444; }
+.resume-paper.tpl-minimal .rp-mn-item-sub { color:#aaa; font-size:12px; }
+.resume-paper.tpl-minimal .rp-mn-item-date { color:#ccc; font-size:11px; white-space:nowrap; }
+.resume-paper.tpl-minimal .rp-mn-item-desc { color:#999; font-size:12px; margin-top:3px; }
+.resume-paper.tpl-minimal .rp-mn-tags { display:flex; flex-wrap:wrap; gap:10px; }
+.resume-paper.tpl-minimal .rp-mn-tag { padding:2px 0; font-size:11px; color:#999; border-bottom:1px solid #e0e0e0; }
 
 /* ═══════════════════════════════════════════════════════════════
-   Template 2 — 左侧sidebar + 右侧内容
+   Template: Compact — 紧凑高效
+   All-in-one header, two-column hints, minimal space
    ═══════════════════════════════════════════════════════════════ */
-.resume-paper.tpl-2 { display: flex; background: #fff; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-size: 12px; line-height: 1.6; color: #333; }
-.tpl-2-sidebar { width: 220px; background: #f5f5f5; padding: 30px 18px; flex-shrink: 0; }
-.tpl-2-sidebar-avatar { width: 80px; height: 80px; border-radius: 8px; margin: 0 auto 15px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #999; overflow: hidden; }
-.tpl-2-sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tpl-2-sidebar-name { font-size: 20px; font-weight: 600; text-align: center; color: #333; margin-bottom: 6px; }
-.tpl-2-sidebar-job { font-size: 12px; text-align: center; color: #666; margin-bottom: 20px; }
-.tpl-2-sidebar-divider { height: 1px; background: #ddd; margin: 15px 0; }
-.tpl-2-sidebar-info { font-size: 11px; color: #555; line-height: 2.2; }
-.tpl-2-sidebar-info-item { display: flex; align-items: center; gap: 8px; }
-.tpl-2-sidebar-info-icon { width: 16px; text-align: center; color: #888; }
-.tpl-2-sidebar-box-title { border: 1px solid #333; padding: 4px 12px; font-size: 11px; font-weight: 600; text-align: center; margin-bottom: 10px; }
-.tpl-2-sidebar-list { font-size: 11px; color: #555; line-height: 1.8; padding-left: 14px; }
-.tpl-2-sidebar-list li { margin-bottom: 2px; }
-.tpl-2-skill-row { margin-bottom: 8px; }
-.tpl-2-skill-name { font-size: 11px; color: #333; font-weight: 500; margin-bottom: 3px; }
-.tpl-2-skill-bar { height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; }
-.tpl-2-skill-fill { height: 100%; background: #5b9bd5; border-radius: 3px; }
-.tpl-2-main { flex: 1; padding: 0; }
-.tpl-2-banner { background: #7a8b99; color: #fff; padding: 8px 24px; font-size: 16px; font-weight: 600; letter-spacing: 2px; margin-bottom: 20px; }
-.tpl-2-main-content { padding: 0 24px 24px; }
-.tpl-2-sec { margin-bottom: 18px; }
-.tpl-2-sec-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.tpl-2-sec-icon { width: 24px; height: 24px; border-radius: 50%; background: #5b9bd5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; }
-.tpl-2-sec-title { font-size: 14px; font-weight: 600; color: #333; }
-.tpl-2-item { margin-bottom: 10px; }
-.tpl-2-item-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-.tpl-2-item-title { font-weight: 600; font-size: 12px; color: #333; }
-.tpl-2-item-sub { font-size: 11px; color: #555; }
-.tpl-2-item-date { font-size: 11px; color: #888; white-space: nowrap; }
-.tpl-2-item-desc { font-size: 11.5px; color: #555; margin-top: 3px; line-height: 1.6; }
-.tpl-2-bullets { margin: 4px 0 0 0; padding-left: 14px; }
-.tpl-2-bullets li { font-size: 11px; color: #555; margin-bottom: 2px; }
-
-/* ═══════════════════════════════════════════════════════════════
-   Template 3 — 蓝色banner + 时间线
-   ═══════════════════════════════════════════════════════════════ */
-.resume-paper.tpl-3 { background: #fff; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-size: 13px; line-height: 1.7; color: #333; }
-.tpl-3-header { background: #5b9bd5; color: #fff; text-align: center; padding: 30px 20px 25px; }
-.tpl-3-avatar { width: 85px; height: 85px; border-radius: 50%; border: 3px solid rgba(255,255,255,.5); margin: 0 auto 12px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 30px; overflow: hidden; }
-.tpl-3-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tpl-3-name { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-.tpl-3-meta { font-size: 13px; opacity: .95; margin-bottom: 6px; }
-.tpl-3-contact { font-size: 12px; opacity: .9; }
-.tpl-3-main { padding: 30px 40px 40px 75px; position: relative; }
-.tpl-3-timeline { position: absolute; left: 44px; top: 40px; bottom: 40px; width: 2px; background: #e0e0e0; }
-.tpl-3-sec { position: relative; margin-bottom: 22px; }
-.tpl-3-sec-icon { position: absolute; left: -39px; top: -2px; width: 26px; height: 26px; border-radius: 50%; background: #5b9bd5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 3px solid #fff; box-shadow: 0 0 0 2px #e0e0e0; }
-.tpl-3-sec-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px; }
-.tpl-3-item { margin-bottom: 12px; }
-.tpl-3-item-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-.tpl-3-item-title { font-weight: 600; font-size: 13px; color: #333; }
-.tpl-3-item-title-blue { font-weight: 600; font-size: 13px; color: #5b9bd5; }
-.tpl-3-item-sub { font-size: 12px; color: #555; }
-.tpl-3-item-date { font-size: 12px; color: #888; white-space: nowrap; }
-.tpl-3-item-desc { font-size: 12px; color: #555; margin-top: 3px; line-height: 1.7; }
-.tpl-3-bullets { margin: 4px 0 0 0; padding-left: 16px; }
-.tpl-3-bullets li { font-size: 12px; color: #555; margin-bottom: 2px; }
-.tpl-3-desc { font-size: 12.5px; color: #555; line-height: 1.8; }
-.tpl-3-skill-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-.tpl-3-skill-name { font-size: 12px; color: #333; width: 70px; }
-.tpl-3-skill-bar { flex: 1; height: 8px; background: #e8e8e8; border-radius: 4px; overflow: hidden; }
-.tpl-3-skill-fill { height: 100%; background: #5b9bd5; border-radius: 4px; }
-.tpl-3-skill-level { font-size: 11px; color: #888; width: 40px; text-align: right; }
-
-/* ═══════════════════════════════════════════════════════════════
-   Template 4 — 简洁线条 + 方形头像
-   ═══════════════════════════════════════════════════════════════ */
-.resume-paper.tpl-4 { background: #fff; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-size: 12.5px; line-height: 1.7; color: #333; padding: 45px 55px; }
-.tpl-4-header { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; }
-.tpl-4-avatar { width: 75px; height: 75px; border-radius: 8px; background: #e8e8e8; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #999; overflow: hidden; flex-shrink: 0; }
-.tpl-4-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tpl-4-header-info { flex: 1; }
-.tpl-4-name { font-size: 24px; font-weight: 600; color: #333; margin-bottom: 6px; }
-.tpl-4-contact { font-size: 12px; color: #666; margin-bottom: 4px; }
-.tpl-4-job { font-size: 12px; color: #888; }
-.tpl-4-sec { margin-bottom: 18px; }
-.tpl-4-sec-title { font-size: 14px; font-weight: 600; color: #333; border-left: 3px solid #333; padding-left: 10px; margin-bottom: 12px; }
-.tpl-4-item { margin-bottom: 12px; }
-.tpl-4-item-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-.tpl-4-item-title { font-weight: 600; font-size: 13px; color: #333; }
-.tpl-4-item-sub { font-size: 12px; color: #555; }
-.tpl-4-item-date { font-size: 11px; color: #999; white-space: nowrap; }
-.tpl-4-desc { font-size: 12px; color: #555; line-height: 1.8; }
-.tpl-4-bullets { margin: 4px 0 0 0; padding-left: 16px; }
-.tpl-4-bullets li { font-size: 12px; color: #555; margin-bottom: 2px; line-height: 1.6; }
-
-/* ═══════════════════════════════════════════════════════════════
-   Template 5 — 粉色斜切 + 红线装饰
-   ═══════════════════════════════════════════════════════════════ */
-.resume-paper.tpl-5 { background: #fff; font-family: 'PingFang SC','Microsoft YaHei',sans-serif; font-size: 12.5px; line-height: 1.7; color: #333; }
-.tpl-5-header { background: linear-gradient(135deg, #e85d75, #d64d65); height: 140px; display: flex; align-items: center; padding: 0 50px; color: #fff; clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); }
-.tpl-5-avatar { width: 80px; height: 80px; border-radius: 4px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; flex-shrink: 0; margin-right: 20px; border: 2px solid rgba(255,255,255,.3); }
-.tpl-5-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.tpl-5-header-info { flex: 1; }
-.tpl-5-name { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
-.tpl-5-contact { font-size: 12px; opacity: .95; }
-.tpl-5-main { padding: 30px 50px 40px; }
-.tpl-5-sec { margin-bottom: 16px; }
-.tpl-5-sec-title { font-size: 14px; font-weight: 600; color: #333; border-left: 3px solid #e85d75; padding-left: 10px; margin-bottom: 10px; }
-.tpl-5-item { margin-bottom: 12px; }
-.tpl-5-item-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-.tpl-5-item-title { font-weight: 600; font-size: 13px; color: #333; }
-.tpl-5-item-sub { font-size: 12px; color: #555; }
-.tpl-5-item-date { font-size: 11px; color: #999; white-space: nowrap; }
-.tpl-5-desc { font-size: 12px; color: #555; line-height: 1.7; }
-.tpl-5-bullets { margin: 4px 0 0 0; padding-left: 16px; }
-.tpl-5-bullets li { font-size: 12px; color: #555; margin-bottom: 2px; line-height: 1.6; }
+.resume-paper.tpl-compact { padding:36px 44px; font-size:12px; line-height:1.5; color:#222; }
+.resume-paper.tpl-compact .rp-cp-header { display:flex; align-items:baseline; gap:0; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #111; }
+.resume-paper.tpl-compact .rp-cp-name { font-size:20px; font-weight:700; margin-right:auto; }
+.resume-paper.tpl-compact .rp-cp-job { font-size:12px; color:#555; margin-right:16px; }
+.resume-paper.tpl-compact .rp-cp-contact { font-size:10px; color:#888; white-space:nowrap; }
+.resume-paper.tpl-compact .rp-cp-sec { margin-bottom:0; }
+.resume-paper.tpl-compact .rp-cp-sec-title { font-size:12px; font-weight:700; color:#111; float:left; width:70px; clear:left; padding-top:5px; letter-spacing:.5px; }
+.resume-paper.tpl-compact .rp-cp-sec-content { margin-left:80px; padding-top:5px; }
+.resume-paper.tpl-compact .rp-cp-item { margin-bottom:8px; }
+.resume-paper.tpl-compact .rp-cp-item-hd { display:flex; justify-content:space-between; align-items:baseline; }
+.resume-paper.tpl-compact .rp-cp-item-title { font-weight:600; font-size:12px; }
+.resume-paper.tpl-compact .rp-cp-item-sub { color:#555; font-size:10px; }
+.resume-paper.tpl-compact .rp-cp-item-date { color:#888; font-size:10px; white-space:nowrap; }
+.resume-paper.tpl-compact .rp-cp-item-desc { color:#555; font-size:11px; margin-top:1px; }
+.resume-paper.tpl-compact .rp-cp-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.resume-paper.tpl-compact .rp-cp-tag { padding:1px 8px; background:#f5f5f5; border:1px solid #e0e0e0; border-radius:2px; font-size:10px; color:#555; }
+.resume-paper.tpl-compact .rp-cp-sec::after { content:''; display:table; clear:both; }
 
 /* ═══════════════════════════════════════════════════════════════
    Print
    ═══════════════════════════════════════════════════════════════ */
 @media print {
-  body { background: #fff; padding: 0; height: auto; overflow: visible; }
-  .app-wrapper { background: #fff; box-shadow: none; border-radius: 0; width: 100%; height: auto; overflow: visible; }
-  .sidebar, .topbar { display: none !important; }
-  .workspace { padding: 0; gap: 0; }
-  .editor { display: none !important; }
-  .preview { background: #fff; padding: 0; overflow: visible; box-shadow: none; border: none; border-radius: 0; }
-  .preview::before { display: none; }
-  .resume-paper { box-shadow: none; width: 100%; min-height: 0; border-radius: 0; }
+  body { background:#fff; }
+  .editor,.topbar { display:none !important; }
+  .preview { padding:0; overflow:visible; }
+  .resume-paper { box-shadow:none; width:100%; min-height:0; border-radius:0; }
+  .resume-paper.tpl-minimal { padding:40px 60px; }
+  .resume-paper.tpl-compact { padding:28px 36px; }
 }
 
 /* Toast */
-.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: var(--card); color: var(--text); padding: 12px 24px; border-radius: var(--radius-pill); font-size: 13px; z-index: 999; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,.4); animation: toastIn .3s ease; }
-@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface2); color:var(--text); padding:10px 20px; border-radius:980px; font-size:13px; z-index:999; border:1px solid var(--border); box-shadow:0 4px 20px rgba(0,0,0,.4); animation:toastIn .3s ease; }
+@keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
 
-/* Responsive */
-@media (max-width: 1300px) { .editor { width: 360px; } .resume-paper { transform: scale(.85); transform-origin: top center; } }
-@media (max-width: 1100px) { .app-wrapper { border-radius: 20px; } .sidebar { width: 60px; } .editor { width: 320px; } .resume-paper { transform: scale(.75); } }
+@media (max-width:1200px) { .editor { width:380px; } .resume-paper { width:100%; } }
 </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-  <aside class="sidebar">
-    <div class="logo">AO</div>
-    <nav class="nav">
-      <button class="nav-item active" data-sec="info" title="个人信息">👤</button>
-      <button class="nav-item" data-sec="expectation" title="求职期望">🎯</button>
-      <button class="nav-item" data-sec="advantage" title="个人优势">✨</button>
-      <button class="nav-item" data-sec="workExps" title="工作经历">💼</button>
-      <button class="nav-item" data-sec="internships" title="实习经历">📝</button>
-      <button class="nav-item" data-sec="educations" title="教育经历">🎓</button>
-      <button class="nav-item" data-sec="projects" title="项目经历">🚀</button>
-      <button class="nav-item" data-sec="activities" title="社团经历">🤝</button>
-      <button class="nav-item" data-sec="certs" title="资格证书">📜</button>
-      <button class="nav-item" data-sec="awards" title="荣誉奖项">🏆</button>
-      <button class="nav-item" data-sec="socials" title="社交主页">🔗</button>
-    </nav>
-    <div class="nav-bottom">
-      <button class="nav-item" onclick="window.print()" title="打印">🖨️</button>
-    </div>
-    <div class="user-avatar">🧑‍💻</div>
-  </aside>
-
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-left">
-        <h1>简历生成器</h1>
-        <div class="tpl-group" id="tpl-group">
-          <button class="tpl-btn active" data-tpl="1">模版1</button>
-          <button class="tpl-btn" data-tpl="2">模版2</button>
-          <button class="tpl-btn" data-tpl="3">模版3</button>
-          <button class="tpl-btn" data-tpl="4">模版4</button>
-          <button class="tpl-btn" data-tpl="5">模版5</button>
-        </div>
-      </div>
-      <div class="topbar-right">
-        <button class="btn btn-ghost btn-small" onclick="saveLocal()">💾 保存</button>
-        <button class="btn btn-ghost btn-small" onclick="loadLocal()">📂 加载</button>
-        <button class="btn btn-primary btn-small" onclick="printResume()">🖨️ 打印PDF</button>
-      </div>
-    </div>
-
-    <div class="workspace">
-      <div class="editor">
-        <div class="editor-body" id="editor-body"></div>
-      </div>
-      <div class="preview">
-        <div class="resume-paper tpl-1" id="resume-preview"></div>
-      </div>
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>简历生成器</h1>
+    <div class="tpl-group" id="tpl-group">
+      <button class="tpl-btn active" data-tpl="classic">经典</button>
+      <button class="tpl-btn" data-tpl="modern">现代</button>
+      <button class="tpl-btn" data-tpl="minimal">极简</button>
+      <button class="tpl-btn" data-tpl="compact">紧凑</button>
     </div>
   </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-small" onclick="saveLocal()">保存</button>
+    <button class="btn btn-ghost btn-small" onclick="loadLocal()">加载</button>
+    <button class="btn btn-primary btn-small" onclick="printResume()">打印PDF</button>
+  </div>
+</div>
+
+<div class="main">
+<div class="editor">
+  <div class="editor-body" id="editor-body"></div>
+</div>
+
+<div class="preview">
+  <div class="resume-paper tpl-classic" id="resume-preview"></div>
+</div>
 </div>
 
 <script>
@@ -372,13 +245,12 @@ var R = {
   awards: [],
   socials: []
 };
-var currentTemplate = '1';
+var currentTemplate = 'classic';
 
 // ── Form builders ──────────────────────────────────────────────
 function formInfo() {
   var d = R.info;
   return fld('姓名')+inp('info.name',d.name,'请输入姓名')+
-    fld('头像URL')+inp('info.avatar',d.avatar,'https://example.com/avatar.jpg')+
     frow(fld('生日')+inp('info.birthday',d.birthday,'','date'),fld('性别')+sel('info.gender',d.gender,['','男','女']))+
     frow(fld('邮箱')+inp('info.email',d.email,'请输入邮箱','email'),fld('电话')+inp('info.phone',d.phone,'请输入电话','tel'))+
     frow(fld('微信号')+inp('info.wechat',d.wechat,'请输入微信号'),fld('籍贯')+inp('info.hometown',d.hometown,'请输入籍贯'))+
@@ -400,6 +272,7 @@ function formCerts() { return formList('certs', R.certs, certTemplate); }
 function formAwards() { return formList('awards', R.awards, awardTemplate); }
 function formSocials() { return formList('socials', R.socials, socialTemplate); }
 
+// ── Item templates ─────────────────────────────────────────────
 function workExpTemplate(item, idx, prefix) {
   return frow(fld('公司名称')+inp(prefix+'.company',item.company||'','请输入公司名称'),fld('职位')+inp(prefix+'.position',item.position||'','请输入职位'))+
     frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','','month'))+
@@ -465,17 +338,17 @@ function formList(key, arr, templateFn) {
 
 // ── Section definitions ────────────────────────────────────────
 var sectionDefs = [
-  { form:formInfo, icon:'👤', title:'个人信息', key:'info' },
-  { form:formExpectation, icon:'🎯', title:'求职期望', key:'expectation' },
-  { form:formAdvantage, icon:'✨', title:'个人优势', key:'advantage' },
-  { form:formWorkExps, icon:'💼', title:'工作经历', key:'workExps' },
-  { form:formInternships, icon:'📝', title:'实习经历', key:'internships' },
-  { form:formEducations, icon:'🎓', title:'教育经历', key:'educations' },
-  { form:formProjects, icon:'🚀', title:'项目经历', key:'projects' },
-  { form:formActivities, icon:'🤝', title:'社团经历', key:'activities' },
-  { form:formCerts, icon:'📜', title:'资格证书', key:'certs' },
-  { form:formAwards, icon:'🏆', title:'荣誉奖项', key:'awards' },
-  { form:formSocials, icon:'🔗', title:'社交主页', key:'socials' }
+  { form:formInfo, icon:'👤', title:'个人信息' },
+  { form:formExpectation, icon:'🎯', title:'求职期望' },
+  { form:formAdvantage, icon:'✨', title:'个人优势' },
+  { form:formWorkExps, icon:'💼', title:'工作经历' },
+  { form:formInternships, icon:'📝', title:'实习经历' },
+  { form:formEducations, icon:'🎓', title:'教育经历' },
+  { form:formProjects, icon:'🚀', title:'项目经历' },
+  { form:formActivities, icon:'🤝', title:'社团经历' },
+  { form:formCerts, icon:'📜', title:'资格证书' },
+  { form:formAwards, icon:'🏆', title:'荣誉奖项' },
+  { form:formSocials, icon:'🔗', title:'社交主页' }
 ];
 
 // ── Data operations ────────────────────────────────────────────
@@ -506,545 +379,273 @@ function removeItem(key, idx) { R[key].splice(idx, 1); renderEditor(); renderPre
 function renderEditor() {
   var h = '';
   sectionDefs.forEach(function(sec){
-    h += '<div class="editor-section" data-section="'+sec.key+'">';
-    h += '<div class="editor-section-title"><span class="sec-icon">'+sec.icon+'</span> '+sec.title+'</div>';
+    h += '<div class="editor-section"><div class="editor-section-title"><span class="sec-icon">'+sec.icon+'</span> '+sec.title+'</div>';
     h += sec.form()+'</div>';
   });
   document.getElementById('editor-body').innerHTML = h;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Helpers for new templates
+//  Section rendering helpers (shared by templates)
 // ═══════════════════════════════════════════════════════════════
-function avatarImg(cls, url, name) {
-  if (url) return '<div class="'+cls+'"><img src="'+esc(url)+'" style="width:100%;height:100%;object-fit:cover;"></div>';
-  var initial = name ? name[0] : '👤';
-  return '<div class="'+cls+'">'+initial+'</div>';
-}
-function toBullets(text, cls) {
-  if (!text) return '';
-  var lines = text.split('\n').filter(function(l){ return l.trim(); });
-  if (!lines.length) return '';
-  var h = '<ul class="'+cls+'">';
-  lines.forEach(function(line){
-    h += '<li>'+esc(line.trim().replace(/^[-•*]\s*/,''))+'</li>';
+function secWorkExp(prefix, title, icon, exps) {
+  if (!exps.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  exps.forEach(function(w){
+    h += '<div class="'+prefix+'-item"><div class="'+prefix+'-item-hd"><span class="'+prefix+'-item-title">'+esc(w.company)+'</span><span class="'+prefix+'-item-date">'+esc(w.startDate)+' — '+(esc(w.endDate)||'至今')+'</span></div>';
+    h += '<div class="'+prefix+'-item-sub">'+esc(w.position)+'</div>';
+    if (w.description) h += '<div class="'+prefix+'-item-desc">'+esc(w.description)+'</div>';
+    if (w.achievements) h += '<div class="'+prefix+'-item-desc">★ '+esc(w.achievements)+'</div>';
+    h += '</div>';
   });
-  h += '</ul>';
+  h += '</div>';
   return h;
 }
-function skillLevel(name) {
-  if (name.indexOf('精通') >= 0) return { pct: 95, label: '精通' };
-  if (name.indexOf('熟练') >= 0) return { pct: 80, label: '熟练' };
-  if (name.indexOf('良好') >= 0) return { pct: 65, label: '良好' };
-  if (name.indexOf('了解') >= 0) return { pct: 40, label: '了解' };
-  if (name.indexOf('基础') >= 0) return { pct: 30, label: '基础' };
-  return { pct: 60, label: '一般' };
-}
-function cleanSkillName(name) {
-  return name.replace(/[（(].*?[）)]/g, '').trim();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  Template 1
-// ═══════════════════════════════════════════════════════════════
-function renderT1() {
-  var i = R.info, e = R.expectation;
-  var h = '';
-  h += '<div class="t1-header-top"></div>';
-  h += avatarImg('t1-avatar', i.avatar, i.name);
-  h += '<div class="t1-name">'+(i.name||'姓名')+'</div>';
-  var contacts = [];
-  if (i.phone) contacts.push(i.phone);
-  if (i.email) contacts.push(i.email);
-  if (contacts.length) h += '<div class="t1-contact">'+contacts.join(' | ')+'</div>';
-  if (e.position) h += '<div class="t1-job">'+esc(e.position)+'</div>';
-  h += '<div class="t1-main">';
-  if (R.advantage) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">个人总结</div>';
-    h += '<div class="t1-desc">'+esc(R.advantage).replace(/\n/g,'<br>')+'</div></div>';
-  }
-  if (R.workExps.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">工作经历</div>';
-    R.workExps.forEach(function(w){
-      h += '<div class="t1-item">';
-      h += '<div class="t1-item-hd"><span class="t1-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span></div>';
-      h += '<div class="t1-item-sub">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</div>';
-      h += toBullets(w.description, 't1-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't1-bullets');
-      h += '</div>';
-    });
+function secEducation(prefix, title, icon, eds) {
+  if (!eds.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  eds.forEach(function(ed){
+    h += '<div class="'+prefix+'-item"><div class="'+prefix+'-item-hd"><span class="'+prefix+'-item-title">'+esc(ed.school)+'</span><span class="'+prefix+'-item-date">'+esc(ed.startDate)+' — '+esc(ed.endDate)+'</span></div>';
+    h += '<div class="'+prefix+'-item-sub">'+esc(ed.major)+(ed.degree?' · '+ed.degree:'')+'</div>';
     h += '</div>';
-  }
-  if (R.internships.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">实习经历</div>';
-    R.internships.forEach(function(w){
-      h += '<div class="t1-item">';
-      h += '<div class="t1-item-hd"><span class="t1-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span></div>';
-      h += '<div class="t1-item-sub">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</div>';
-      h += toBullets(w.description, 't1-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't1-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.projects.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">项目经历</div>';
-    R.projects.forEach(function(p){
-      h += '<div class="t1-item">';
-      h += '<div class="t1-item-hd"><span class="t1-item-title">'+esc(p.name)+'</span><span class="t1-item-loc">'+esc(p.role||'')+'</span></div>';
-      h += '<div class="t1-item-sub">'+esc(p.startDate)+' — '+esc(p.endDate||'至今')+'</div>';
-      h += toBullets(p.description, 't1-bullets');
-      if (p.achievements) h += toBullets(p.achievements, 't1-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.educations.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">教育经历</div>';
-    R.educations.forEach(function(ed){
-      h += '<div class="t1-item">';
-      h += '<div class="t1-item-hd"><span class="t1-item-title">'+esc(ed.school)+'</span><span class="t1-item-loc">'+esc(ed.degree||'')+'</span></div>';
-      h += '<div class="t1-item-sub">'+esc(ed.major)+' · '+esc(ed.startDate)+' — '+esc(ed.endDate)+'</div>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.activities.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">社团经历</div>';
-    R.activities.forEach(function(a){
-      h += '<div class="t1-item">';
-      h += '<div class="t1-item-hd"><span class="t1-item-title">'+esc(a.orgName)+'</span><span class="t1-item-loc">'+esc(a.role||'')+'</span></div>';
-      h += '<div class="t1-item-sub">'+esc(a.startDate)+' — '+esc(a.endDate)+'</div>';
-      h += toBullets(a.description, 't1-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  var allAwards = [];
-  R.awards.forEach(function(a){ if(a.name) allAwards.push(a.name); });
-  if (allAwards.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">荣誉奖项</div>';
-    h += '<ul class="t1-bullets">';
-    allAwards.forEach(function(a){ h += '<li>'+esc(a)+'</li>'; });
-    h += '</ul></div>';
-  }
-  var allCerts = [];
-  R.certs.forEach(function(c){ if(c.name) allCerts.push(c.name); });
-  if (allCerts.length) {
-    h += '<div class="t1-sec"><div class="t1-sec-title">技能证书</div>';
-    h += '<ul class="t1-bullets">';
-    allCerts.forEach(function(c){ h += '<li>'+esc(c)+'</li>'; });
-    h += '</ul></div>';
-  }
-  if (R.socials.length) {
-    var socialItems = R.socials.filter(function(s){ return s.url; });
-    if (socialItems.length) {
-      h += '<div class="t1-sec"><div class="t1-sec-title">社交主页</div>';
-      h += '<div class="t1-desc">';
-      socialItems.forEach(function(s){ h += esc(s.platform)+'：'+esc(s.url)+'<br>'; });
-      h += '</div></div>';
-    }
-  }
+  });
   h += '</div>';
-  document.getElementById('resume-preview').innerHTML = h;
+  return h;
+}
+function secProjects(prefix, title, icon, projs) {
+  if (!projs.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  projs.forEach(function(p){
+    h += '<div class="'+prefix+'-item"><div class="'+prefix+'-item-hd"><span class="'+prefix+'-item-title">'+esc(p.name)+'</span><span class="'+prefix+'-item-date">'+esc(p.startDate)+' — '+esc(p.endDate)+'</span></div>';
+    if (p.role) h += '<div class="'+prefix+'-item-sub">'+esc(p.role)+'</div>';
+    if (p.description) h += '<div class="'+prefix+'-item-desc">'+esc(p.description)+'</div>';
+    if (p.achievements) h += '<div class="'+prefix+'-item-desc">★ '+esc(p.achievements)+'</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+function secActivities(prefix, title, icon, acts) {
+  if (!acts.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  acts.forEach(function(a){
+    h += '<div class="'+prefix+'-item"><div class="'+prefix+'-item-hd"><span class="'+prefix+'-item-title">'+esc(a.orgName)+'</span><span class="'+prefix+'-item-date">'+esc(a.startDate)+' — '+esc(a.endDate)+'</span></div>';
+    if (a.role) h += '<div class="'+prefix+'-item-sub">'+esc(a.role)+'</div>';
+    if (a.description) h += '<div class="'+prefix+'-item-desc">'+esc(a.description)+'</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+function secTags(prefix, title, icon, certs, awards) {
+  var tags = [];
+  certs.forEach(function(c){ if(c.name) tags.push(c.name); });
+  awards.forEach(function(a){ if(a.name) tags.push(a.name); });
+  if (!tags.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  h += '<div class="'+prefix+'-tags">';
+  tags.forEach(function(t){ h += '<span class="'+prefix+'-tag">'+esc(t)+'</span>'; });
+  h += '</div></div>';
+  return h;
+}
+function secSocials(prefix, title, icon, socials) {
+  if (!socials.length) return '';
+  var h = '<div class="'+prefix+'-sec"><div class="'+prefix+'-sec-title"><span class="sec-decor">'+icon+'</span> '+title+'</div>';
+  socials.forEach(function(s){
+    if (s.url) h += '<div class="'+prefix+'-item-desc">'+esc(s.platform)+': '+esc(s.url)+'</div>';
+  });
+  h += '</div>';
+  return h;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Template 2
+//  Template: Classic 经典
 // ═══════════════════════════════════════════════════════════════
-function renderT2() {
-  var i = R.info, e = R.expectation;
-  var h = '';
-  h += '<div class="t2-sidebar">';
-  h += avatarImg('t2-sidebar-avatar', i.avatar, i.name);
-  h += '<div class="t2-sidebar-name">'+(i.name||'姓名')+'</div>';
-  if (e.position) h += '<div class="t2-sidebar-job">求职岗位：'+esc(e.position)+'</div>';
-  h += '<div class="t2-sidebar-divider"></div>';
-  h += '<div class="t2-sidebar-info">';
-  if (i.birthday) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">📅</span>'+esc(i.birthday)+'</div>';
-  if (i.gender) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">⚧</span>'+esc(i.gender)+'</div>';
-  if (i.hometown) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">📍</span>'+esc(i.hometown)+'</div>';
-  if (i.phone) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">📞</span>'+esc(i.phone)+'</div>';
-  if (i.email) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">✉️</span>'+esc(i.email)+'</div>';
-  if (i.wechat) h += '<div class="t2-sidebar-info-item"><span class="t2-sidebar-info-icon">💬</span>'+esc(i.wechat)+'</div>';
-  h += '</div>';
-  if (R.awards.length) {
-    var validAwards = R.awards.filter(function(a){ return a.name; });
-    if (validAwards.length) {
-      h += '<div class="t2-sidebar-divider"></div>';
-      h += '<div class="t2-sidebar-box-title">荣誉证书</div>';
-      h += '<ul class="t2-sidebar-list">';
-      validAwards.forEach(function(a){ h += '<li>'+esc(a.name)+'</li>'; });
-      h += '</ul>';
-    }
-  }
-  if (R.certs.length) {
-    var validCerts = R.certs.filter(function(c){ return c.name; });
-    if (validCerts.length) {
-      h += '<div class="t2-sidebar-divider"></div>';
-      h += '<div class="t2-sidebar-box-title">技能特长</div>';
-      validCerts.forEach(function(c){
-        var lvl = skillLevel(c.name);
-        var name = cleanSkillName(c.name);
-        h += '<div class="t2-skill-row">';
-        h += '<div class="t2-skill-name">'+esc(name)+'</div>';
-        h += '<div class="t2-skill-bar"><div class="t2-skill-fill" style="width:'+lvl.pct+'%"></div></div>';
-        h += '</div>';
-      });
-    }
-  }
-  h += '</div>';
-  h += '<div class="t2-main">';
-  h += '<div class="t2-banner">PERSONAL RESUME</div>';
-  h += '<div class="t2-main-content">';
-  if (R.educations.length) {
-    h += '<div class="t2-sec">';
-    h += '<div class="t2-sec-header"><div class="t2-sec-icon">📚</div><div class="t2-sec-title">教育背景</div></div>';
-    R.educations.forEach(function(ed){
-      h += '<div class="t2-item">';
-      h += '<div class="t2-item-hd"><span class="t2-item-title">'+esc(ed.school)+' · '+esc(ed.major)+'</span><span class="t2-item-date">'+esc(ed.startDate)+' — '+esc(ed.endDate)+'</span></div>';
-      if (ed.degree) h += '<div class="t2-item-sub">学历：'+esc(ed.degree)+'</div>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.workExps.length) {
-    h += '<div class="t2-sec">';
-    h += '<div class="t2-sec-header"><div class="t2-sec-icon">💼</div><div class="t2-sec-title">工作经验</div></div>';
-    R.workExps.forEach(function(w){
-      h += '<div class="t2-item">';
-      h += '<div class="t2-item-hd"><span class="t2-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span><span class="t2-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span></div>';
-      h += toBullets(w.description, 't2-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't2-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.projects.length) {
-    h += '<div class="t2-sec">';
-    h += '<div class="t2-sec-header"><div class="t2-sec-icon">📁</div><div class="t2-sec-title">项目经验</div></div>';
-    R.projects.forEach(function(p){
-      h += '<div class="t2-item">';
-      h += '<div class="t2-item-hd"><span class="t2-item-title">'+esc(p.name)+(p.role?' · '+esc(p.role):'')+'</span><span class="t2-item-date">'+esc(p.startDate)+' — '+esc(p.endDate||'至今')+'</span></div>';
-      h += toBullets(p.description, 't2-bullets');
-      if (p.achievements) h += toBullets(p.achievements, 't2-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.internships.length) {
-    h += '<div class="t2-sec">';
-    h += '<div class="t2-sec-header"><div class="t2-sec-icon">📝</div><div class="t2-sec-title">实习经历</div></div>';
-    R.internships.forEach(function(w){
-      h += '<div class="t2-item">';
-      h += '<div class="t2-item-hd"><span class="t2-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span><span class="t2-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span></div>';
-      h += toBullets(w.description, 't2-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't2-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.advantage) {
-    h += '<div class="t2-sec">';
-    h += '<div class="t2-sec-header"><div class="t2-sec-icon">💬</div><div class="t2-sec-title">自我评价</div></div>';
-    h += '<div class="t2-item-desc">'+esc(R.advantage).replace(/\n/g,'<br>')+'</div>';
-    h += '</div>';
+function renderClassic() {
+  var i = R.info, e = R.expectation, p = 'rp-cl';
+  var contactItems = [i.email, i.phone, i.wechat, i.hometown].filter(Boolean);
+  var h = '<div class="'+p+'-header">';
+  h += '<div class="'+p+'-name">'+(i.name||'姓名')+'</div>';
+  if (e.position) h += '<div class="'+p+'-job">求职意向：'+esc(e.position)+' · '+esc(e.city)+(e.salary?' · '+esc(e.salary):'')+'</div>';
+  h += '<div class="'+p+'-contact">';
+  contactItems.forEach(function(c){ h += '<span>'+esc(c)+'</span>'; });
+  if (i.birthday || i.gender || i.political) {
+    var extra = [i.gender, i.birthday, i.political].filter(Boolean).join(' · ');
+    h += '<span>'+esc(extra)+'</span>';
   }
   h += '</div></div>';
+
+  if (R.advantage) {
+    h += '<div class="'+p+'-sec"><div class="'+p+'-sec-title"><span class="sec-decor">✨</span> 个人优势</div>';
+    h += '<div class="'+p+'-item-desc">'+R.advantage.replace(/\n/g,'<br>')+'</div></div>';
+  }
+  h += secWorkExp(p, '工作经历', '💼', R.workExps);
+  h += secWorkExp(p, '实习经历', '📝', R.internships);
+  h += secProjects(p, '项目经历', '🚀', R.projects);
+  h += secEducation(p, '教育经历', '🎓', R.educations);
+  h += secActivities(p, '社团经历', '🤝', R.activities);
+  h += secTags(p, '技能证书 & 荣誉', '🏆', R.certs, R.awards);
+  h += secSocials(p, '社交主页', '🔗', R.socials);
   document.getElementById('resume-preview').innerHTML = h;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Template 3
+//  Template: Modern 现代
 // ═══════════════════════════════════════════════════════════════
-function renderT3() {
+function renderModern() {
   var i = R.info, e = R.expectation;
+  var contactLines = [i.email, i.phone, i.wechat, i.hometown].filter(Boolean);
   var h = '';
-  h += '<div class="t3-header">';
-  h += avatarImg('t3-avatar', i.avatar, i.name);
-  h += '<div class="t3-name">'+(i.name||'姓名')+'</div>';
-  var meta = [];
-  if (e.position) meta.push(esc(e.position));
-  if (e.city) meta.push(esc(e.city));
-  if (e.salary) meta.push(esc(e.salary));
-  if (meta.length) h += '<div class="t3-meta">'+meta.join(' | ')+'</div>';
-  var contacts = [];
-  if (i.birthday) contacts.push(esc(i.birthday));
-  if (i.gender) contacts.push(esc(i.gender));
-  if (i.phone) contacts.push(esc(i.phone));
-  if (i.email) contacts.push(esc(i.email));
-  if (contacts.length) h += '<div class="t3-contact">'+contacts.join(' | ')+'</div>';
-  h += '</div>';
-  h += '<div class="t3-main">';
-  h += '<div class="t3-timeline"></div>';
-  if (R.educations.length) {
-    h += '<div class="t3-sec"><div class="t3-sec-icon">🎓</div><div class="t3-sec-title">教育背景</div>';
-    R.educations.forEach(function(ed){
-      h += '<div class="t3-item">';
-      h += '<div class="t3-item-hd"><span class="t3-item-title">'+esc(ed.school)+'</span><span class="t3-item-date">'+esc(ed.startDate)+' — '+esc(ed.endDate)+'</span></div>';
-      h += '<div class="t3-item-sub">'+esc(ed.major)+(ed.degree?' · '+ed.degree:'')+'</div>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.workExps.length) {
-    h += '<div class="t3-sec"><div class="t3-sec-icon">💼</div><div class="t3-sec-title">工作经验</div>';
-    R.workExps.forEach(function(w){
-      h += '<div class="t3-item">';
-      h += '<div class="t3-item-hd"><span class="t3-item-title-blue">'+esc(w.company)+'</span><span class="t3-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span></div>';
-      h += '<div class="t3-item-sub">'+esc(w.position)+'</div>';
-      h += toBullets(w.description, 't3-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't3-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.internships.length) {
-    h += '<div class="t3-sec"><div class="t3-sec-icon">📝</div><div class="t3-sec-title">实习经历</div>';
-    R.internships.forEach(function(w){
-      h += '<div class="t3-item">';
-      h += '<div class="t3-item-hd"><span class="t3-item-title-blue">'+esc(w.company)+'</span><span class="t3-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span></div>';
-      h += '<div class="t3-item-sub">'+esc(w.position)+'</div>';
-      h += toBullets(w.description, 't3-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't3-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.certs.length) {
-    var validCerts = R.certs.filter(function(c){ return c.name; });
-    if (validCerts.length) {
-      h += '<div class="t3-sec"><div class="t3-sec-icon">⚙️</div><div class="t3-sec-title">技能特长</div>';
-      validCerts.forEach(function(c){
-        var lvl = skillLevel(c.name);
-        var name = cleanSkillName(c.name);
-        h += '<div class="t3-skill-row">';
-        h += '<div class="t3-skill-name">'+esc(name)+'</div>';
-        h += '<div class="t3-skill-bar"><div class="t3-skill-fill" style="width:'+lvl.pct+'%"></div></div>';
-        h += '<div class="t3-skill-level">'+lvl.label+'</div>';
-        h += '</div>';
-      });
-      h += '</div>';
-    }
-  }
-  if (R.awards.length) {
-    var validAwards = R.awards.filter(function(a){ return a.name; });
-    if (validAwards.length) {
-      h += '<div class="t3-sec"><div class="t3-sec-icon">🏅</div><div class="t3-sec-title">荣誉证书</div>';
-      h += toBullets(validAwards.map(function(a){ return a.name; }).join('\n'), 't3-bullets');
-      h += '</div>';
-    }
-  }
-  if (R.advantage) {
-    h += '<div class="t3-sec"><div class="t3-sec-icon">👤</div><div class="t3-sec-title">自我评价</div>';
-    h += '<div class="t3-desc">'+esc(R.advantage).replace(/\n/g,'<br>')+'</div>';
-    h += '</div>';
-  }
-  h += '</div>';
-  document.getElementById('resume-preview').innerHTML = h;
-}
 
-// ═══════════════════════════════════════════════════════════════
-//  Template 4
-// ═══════════════════════════════════════════════════════════════
-function renderT4() {
-  var i = R.info, e = R.expectation;
-  var h = '';
-  h += '<div class="t4-header">';
-  h += avatarImg('t4-avatar', i.avatar, i.name);
-  h += '<div class="t4-header-info">';
-  h += '<div class="t4-name">'+(i.name||'姓名')+'</div>';
-  var contacts = [];
-  if (i.phone) contacts.push(i.phone);
-  if (i.email) contacts.push(i.email);
-  if (contacts.length) h += '<div class="t4-contact">'+contacts.join(' | ')+'</div>';
-  if (e.position) h += '<div class="t4-job">'+esc(e.position)+(e.city?' · '+esc(e.city):'')+'</div>';
-  h += '</div></div>';
-  if (R.advantage) {
-    h += '<div class="t4-sec"><div class="t4-sec-title">个人总结</div>';
-    h += '<div class="t4-desc">'+esc(R.advantage).replace(/\n/g,'<br>')+'</div></div>';
-  }
-  if (R.workExps.length) {
-    h += '<div class="t4-sec"><div class="t4-sec-title">工作经历</div>';
-    R.workExps.forEach(function(w){
-      h += '<div class="t4-item">';
-      h += '<div class="t4-item-hd"><span class="t4-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span></div>';
-      h += '<div class="t4-item-sub">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</div>';
-      h += toBullets(w.description, 't4-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't4-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.internships.length) {
-    h += '<div class="t4-sec"><div class="t4-sec-title">实习经历</div>';
-    R.internships.forEach(function(w){
-      h += '<div class="t4-item">';
-      h += '<div class="t4-item-hd"><span class="t4-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span></div>';
-      h += '<div class="t4-item-sub">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</div>';
-      h += toBullets(w.description, 't4-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't4-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.projects.length) {
-    h += '<div class="t4-sec"><div class="t4-sec-title">项目经历</div>';
-    R.projects.forEach(function(p){
-      h += '<div class="t4-item">';
-      h += '<div class="t4-item-hd"><span class="t4-item-title">'+esc(p.name)+(p.role?' · '+esc(p.role):'')+'</span></div>';
-      h += '<div class="t4-item-sub">'+esc(p.startDate)+' — '+esc(p.endDate||'至今')+'</div>';
-      h += toBullets(p.description, 't4-bullets');
-      if (p.achievements) h += toBullets(p.achievements, 't4-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.activities.length) {
-    h += '<div class="t4-sec"><div class="t4-sec-title">社团经历</div>';
-    R.activities.forEach(function(a){
-      h += '<div class="t4-item">';
-      h += '<div class="t4-item-hd"><span class="t4-item-title">'+esc(a.orgName)+(a.role?' · '+esc(a.role):'')+'</span></div>';
-      h += '<div class="t4-item-sub">'+esc(a.startDate)+' — '+esc(a.endDate)+'</div>';
-      h += toBullets(a.description, 't4-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.awards.length) {
-    var validAwards = R.awards.filter(function(a){ return a.name; });
-    if (validAwards.length) {
-      h += '<div class="t4-sec"><div class="t4-sec-title">荣誉奖项</div>';
-      h += '<ul class="t4-bullets">';
-      validAwards.forEach(function(a){ h += '<li>'+esc(a.name)+'</li>'; });
-      h += '</ul></div>';
+  // Sidebar
+  h += '<div class="rp-md-sidebar">';
+  h += '<div class="md-avatar">'+(i.avatar||'👤')+'</div>';
+  h += '<div class="md-name">'+(i.name||'姓名')+'</div>';
+  if (e.position) h += '<div class="md-job">'+esc(e.position)+'</div>';
+  if (contactLines.length) {
+    h += '<div class="md-block"><div class="md-block-title">联系方式</div>';
+    h += '<div class="md-contact">';
+    contactLines.forEach(function(c){ h += esc(c)+'<br>'; });
+    if (i.birthday || i.gender) {
+      var extra = [i.gender, i.birthday].filter(Boolean).join(' · ');
+      h += esc(extra)+'<br>';
     }
+    h += '</div></div>';
   }
-  if (R.certs.length) {
-    var validCerts = R.certs.filter(function(c){ return c.name; });
-    if (validCerts.length) {
-      h += '<div class="t4-sec"><div class="t4-sec-title">技能证书</div>';
-      h += '<ul class="t4-bullets">';
-      validCerts.forEach(function(c){ h += '<li>'+esc(c.name)+'</li>'; });
-      h += '</ul></div>';
-    }
+  if (e.city || e.salary) {
+    h += '<div class="md-block"><div class="md-block-title">求职意向</div>';
+    h += '<div class="md-contact">'+[e.city, e.salary].filter(Boolean).join('<br>')+'</div></div>';
   }
+  // Skills in sidebar
+  var tags = [];
+  R.certs.forEach(function(c){ if(c.name) tags.push(c.name); });
+  R.awards.forEach(function(a){ if(a.name) tags.push(a.name); });
+  if (tags.length) {
+    h += '<div class="md-block"><div class="md-block-title">技能 & 证书</div>';
+    h += '<div class="md-tags">';
+    tags.forEach(function(t){ h += '<span class="md-tag">'+esc(t)+'</span>'; });
+    h += '</div></div>';
+  }
+  // Socials in sidebar
   if (R.socials.length) {
-    var socialItems = R.socials.filter(function(s){ return s.url; });
-    if (socialItems.length) {
-      h += '<div class="t4-sec"><div class="t4-sec-title">社交主页</div>';
-      h += '<div class="t4-desc">';
-      socialItems.forEach(function(s){ h += esc(s.platform)+'：'+esc(s.url)+'<br>'; });
-      h += '</div></div>';
-    }
+    h += '<div class="md-block"><div class="md-block-title">社交链接</div>';
+    h += '<div class="md-contact" style="font-size:11px">';
+    R.socials.forEach(function(s){ if(s.url) h += esc(s.platform)+'<br>'; });
+    h += '</div></div>';
   }
+  h += '</div>';
+
+  // Main content
+  var p = 'rp-md';
+  h += '<div class="'+p+'-main">';
+  if (R.advantage) {
+    h += '<div class="'+p+'-sec"><div class="'+p+'-sec-title"><span class="sec-decor">✦</span> 个人优势</div>';
+    h += '<div class="'+p+'-item-desc">'+R.advantage.replace(/\n/g,'<br>')+'</div></div>';
+  }
+  h += secWorkExp(p, '工作经历', '◆', R.workExps);
+  h += secWorkExp(p, '实习经历', '◇', R.internships);
+  h += secProjects(p, '项目经历', '▲', R.projects);
+  h += secEducation(p, '教育经历', '△', R.educations);
+  h += secActivities(p, '社团经历', '○', R.activities);
+  h += secSocials(p, '社交主页', '●', []);
+  h += '</div>';
+
   document.getElementById('resume-preview').innerHTML = h;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Template 5
+//  Template: Minimal 极简
 // ═══════════════════════════════════════════════════════════════
-function renderT5() {
-  var i = R.info, e = R.expectation;
+function renderMinimal() {
+  var i = R.info, e = R.expectation, p = 'rp-mn';
+  var contactRight = [i.email, i.phone, i.wechat, i.hometown].filter(Boolean);
+  var extraLine = [i.gender, i.birthday, i.political].filter(Boolean).join(' · ');
+
   var h = '';
-  h += '<div class="t5-header">';
-  h += avatarImg('t5-avatar', i.avatar, i.name);
-  h += '<div class="t5-header-info">';
-  h += '<div class="t5-name">'+(i.name||'姓名')+'</div>';
-  var contacts = [];
-  if (i.phone) contacts.push('电话：'+i.phone);
-  if (i.email) contacts.push('邮箱：'+i.email);
-  if (contacts.length) h += '<div class="t5-contact">'+contacts.join(' | ')+'</div>';
+  h += '<div class="'+p+'-header">';
+  h += '<div><div class="'+p+'-name">'+(i.name||'姓名')+'</div></div>';
+  h += '<div class="'+p+'-info">';
+  if (e.position) h += '<div class="'+p+'-job">'+esc(e.position)+(e.city?' / '+esc(e.city):'')+'</div>';
+  contactRight.forEach(function(c){ h += '<div class="'+p+'-contact">'+esc(c)+'</div>'; });
+  if (extraLine) h += '<div class="'+p+'-contact">'+esc(extraLine)+'</div>';
   h += '</div></div>';
-  h += '<div class="t5-main">';
+
   if (R.advantage) {
-    h += '<div class="t5-sec"><div class="t5-sec-title">个人总结</div>';
-    h += '<div class="t5-desc">'+esc(R.advantage).replace(/\n/g,'<br>')+'</div></div>';
+    h += '<div class="'+p+'-sec"><div class="'+p+'-sec-title">个人优势</div>';
+    h += '<div class="'+p+'-item-desc">'+R.advantage.replace(/\n/g,'<br>')+'</div></div>';
   }
-  if (R.workExps.length) {
-    h += '<div class="t5-sec"><div class="t5-sec-title">工作经历</div>';
-    R.workExps.forEach(function(w){
-      h += '<div class="t5-item">';
-      h += '<div class="t5-item-hd">';
-      h += '<span class="t5-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span>';
-      h += '<span class="t5-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span>';
-      h += '</div>';
-      h += toBullets(w.description, 't5-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't5-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.internships.length) {
-    h += '<div class="t5-sec"><div class="t5-sec-title">实习经历</div>';
-    R.internships.forEach(function(w){
-      h += '<div class="t5-item">';
-      h += '<div class="t5-item-hd">';
-      h += '<span class="t5-item-title">'+esc(w.company)+' · '+esc(w.position)+'</span>';
-      h += '<span class="t5-item-date">'+esc(w.startDate)+' — '+esc(w.endDate||'至今')+'</span>';
-      h += '</div>';
-      h += toBullets(w.description, 't5-bullets');
-      if (w.achievements) h += toBullets(w.achievements, 't5-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.projects.length) {
-    h += '<div class="t5-sec"><div class="t5-sec-title">项目经历</div>';
-    R.projects.forEach(function(p){
-      h += '<div class="t5-item">';
-      h += '<div class="t5-item-hd">';
-      h += '<span class="t5-item-title">'+esc(p.name)+(p.role?' · '+esc(p.role):'')+'</span>';
-      h += '<span class="t5-item-date">'+esc(p.startDate)+' — '+esc(p.endDate||'至今')+'</span>';
-      h += '</div>';
-      h += toBullets(p.description, 't5-bullets');
-      if (p.achievements) h += toBullets(p.achievements, 't5-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.activities.length) {
-    h += '<div class="t5-sec"><div class="t5-sec-title">社团经历</div>';
-    R.activities.forEach(function(a){
-      h += '<div class="t5-item">';
-      h += '<div class="t5-item-hd">';
-      h += '<span class="t5-item-title">'+esc(a.orgName)+(a.role?' · '+esc(a.role):'')+'</span>';
-      h += '<span class="t5-item-date">'+esc(a.startDate)+' — '+esc(a.endDate)+'</span>';
-      h += '</div>';
-      h += toBullets(a.description, 't5-bullets');
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  if (R.awards.length) {
-    var validAwards = R.awards.filter(function(a){ return a.name; });
-    if (validAwards.length) {
-      h += '<div class="t5-sec"><div class="t5-sec-title">荣誉奖项</div>';
-      h += '<ul class="t5-bullets">';
-      validAwards.forEach(function(a){ h += '<li>'+esc(a.name)+'</li>'; });
-      h += '</ul></div>';
-    }
-  }
-  if (R.certs.length) {
-    var validCerts = R.certs.filter(function(c){ return c.name; });
-    if (validCerts.length) {
-      h += '<div class="t5-sec"><div class="t5-sec-title">技能证书</div>';
-      h += '<ul class="t5-bullets">';
-      validCerts.forEach(function(c){ h += '<li>'+esc(c.name)+'</li>'; });
-      h += '</ul></div>';
-    }
-  }
-  if (R.socials.length) {
-    var socialItems = R.socials.filter(function(s){ return s.url; });
-    if (socialItems.length) {
-      h += '<div class="t5-sec"><div class="t5-sec-title">社交主页</div>';
-      h += '<div class="t5-desc">';
-      socialItems.forEach(function(s){ h += esc(s.platform)+'：'+esc(s.url)+'<br>'; });
-      h += '</div></div>';
-    }
-  }
-  h += '</div>';
+  h += secWorkExp(p, '工作经历', '', R.workExps);
+  h += secWorkExp(p, '实习经历', '', R.internships);
+  h += secProjects(p, '项目经历', '', R.projects);
+  h += secEducation(p, '教育经历', '', R.educations);
+  h += secActivities(p, '社团活动', '', R.activities);
+  h += secTags(p, '技能证书 & 荣誉', '', R.certs, R.awards);
+  h += secSocials(p, '社交链接', '', R.socials);
   document.getElementById('resume-preview').innerHTML = h;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Template: Compact 紧凑
+// ═══════════════════════════════════════════════════════════════
+function renderCompact() {
+  var i = R.info, e = R.expectation, p = 'rp-cp';
+  var contactStr = [i.email, i.phone, i.wechat, i.hometown].filter(Boolean).join(' · ');
+  var extraStr = [i.gender, i.birthday, i.political].filter(Boolean).join(' · ');
+  var fullContact = [contactStr, extraStr].filter(Boolean).join(' · ');
+
+  var h = '';
+  h += '<div class="'+p+'-header">';
+  h += '<span class="'+p+'-name">'+(i.name||'姓名')+'</span>';
+  if (e.position) h += '<span class="'+p+'-job">'+esc(e.position)+'</span>';
+  h += '<span class="'+p+'-contact">'+esc(fullContact)+'</span>';
+  h += '</div>';
+
+  // Two-column layout: section title on left, content on right
+  var sections = [];
+  if (R.advantage) sections.push({title:'个人优势', icon:'✨', html:'<div class="'+p+'-item-desc">'+R.advantage.replace(/\n/g,'<br>')+'</div>'});
+  sections.push({title:'工作经历', icon:'💼', html:secCompactItems(p, R.workExps, function(w){
+    var hh = '<div class="'+p+'-item-hd"><span class="'+p+'-item-title">'+esc(w.company)+'</span><span class="'+p+'-item-date">'+esc(w.startDate)+' — '+(esc(w.endDate)||'至今')+'</span></div>';
+    hh += '<div class="'+p+'-item-sub">'+esc(w.position)+'</div>';
+    if (w.description) hh += '<div class="'+p+'-item-desc">'+esc(w.description)+'</div>';
+    if (w.achievements) hh += '<div class="'+p+'-item-desc">★ '+esc(w.achievements)+'</div>';
+    return hh;
+  })});
+  sections.push({title:'教育经历', icon:'🎓', html:secCompactItems(p, R.educations, function(ed){
+    return '<div class="'+p+'-item-hd"><span class="'+p+'-item-title">'+esc(ed.school)+'</span><span class="'+p+'-item-date">'+esc(ed.startDate)+' — '+esc(ed.endDate)+'</span></div><div class="'+p+'-item-sub">'+esc(ed.major)+(ed.degree?' · '+ed.degree:'')+'</div>';
+  })});
+  sections.push({title:'项目经历', icon:'🚀', html:secCompactItems(p, R.projects, function(pp){
+    var hh = '<div class="'+p+'-item-hd"><span class="'+p+'-item-title">'+esc(pp.name)+'</span><span class="'+p+'-item-date">'+esc(pp.startDate)+' — '+esc(pp.endDate)+'</span></div>';
+    if (pp.role) hh += '<div class="'+p+'-item-sub">'+esc(pp.role)+'</div>';
+    if (pp.description) hh += '<div class="'+p+'-item-desc">'+esc(pp.description)+'</div>';
+    if (pp.achievements) hh += '<div class="'+p+'-item-desc">★ '+esc(pp.achievements)+'</div>';
+    return hh;
+  })});
+
+  var tags = [];
+  R.certs.forEach(function(c){ if(c.name) tags.push(c.name); });
+  R.awards.forEach(function(a){ if(a.name) tags.push(a.name); });
+  if (tags.length) {
+    var tagHtml = '<div class="'+p+'-tags">';
+    tags.forEach(function(t){ tagHtml += '<span class="'+p+'-tag">'+esc(t)+'</span>'; });
+    tagHtml += '</div>';
+    sections.push({title:'技能证书', icon:'🏆', html:tagHtml});
+  }
+
+  sections.forEach(function(sec){
+    if (!sec.html) return;
+    h += '<div class="'+p+'-sec"><div class="'+p+'-sec-title"><span class="sec-decor">'+sec.icon+'</span> '+sec.title+'</div>';
+    h += '<div class="'+p+'-sec-content">'+sec.html+'</div></div>';
+  });
+  document.getElementById('resume-preview').innerHTML = h;
+}
+
+function secCompactItems(p, arr, fn) {
+  if (!arr.length) return '';
+  var h = '';
+  arr.forEach(function(item){
+    h += '<div class="'+p+'-item">'+fn(item)+'</div>';
+  });
+  return h;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1052,12 +653,10 @@ function renderT5() {
 // ═══════════════════════════════════════════════════════════════
 function renderPreview() {
   switch(currentTemplate) {
-    case '1': renderT1(); break;
-    case '2': renderT2(); break;
-    case '3': renderT3(); break;
-    case '4': renderT4(); break;
-    case '5': renderT5(); break;
-    default: renderT1();
+    case 'modern': renderModern(); break;
+    case 'minimal': renderMinimal(); break;
+    case 'compact': renderCompact(); break;
+    default: renderClassic();
   }
 }
 
@@ -1074,23 +673,6 @@ function setTemplate(tpl) {
   localStorage.setItem('auto_offer_template', tpl);
   renderPreview();
 }
-
-// ═══════════════════════════════════════════════════════════════
-//  Sidebar navigation — scroll to section
-// ═══════════════════════════════════════════════════════════════
-document.addEventListener('click', function(e){
-  var navBtn = e.target.closest('.nav-item[data-sec]');
-  if (!navBtn) return;
-  document.querySelectorAll('.nav-item[data-sec]').forEach(function(b){ b.classList.remove('active'); });
-  navBtn.classList.add('active');
-  var secKey = navBtn.dataset.sec;
-  var target = document.querySelector('.editor-section[data-section="'+secKey+'"]');
-  if (target) {
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    target.style.borderColor = 'var(--lavender)';
-    setTimeout(function(){ target.style.borderColor = ''; }, 1200);
-  }
-});
 
 // ═══════════════════════════════════════════════════════════════
 //  Persist
@@ -1123,7 +705,7 @@ document.getElementById('tpl-group').addEventListener('click', function(e){
 });
 
 var savedTpl = localStorage.getItem('auto_offer_template');
-if (savedTpl && ['1','2','3','4','5'].indexOf(savedTpl) >= 0) {
+if (savedTpl && ['classic','modern','minimal','compact'].indexOf(savedTpl) >= 0) {
   setTemplate(savedTpl);
 }
 
