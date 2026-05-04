@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>简历生成器 — Auto Offer</title>
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   Design tokens
+   ═══════════════════════════════════════════════════════════════ */
 :root {
   --bg:#141118; --surface:#1e1b24; --surface2:#25222d; --surface3:#2d2936;
   --border:#302c39; --text:#fff; --text2:#b0acb9; --text3:#787380;
@@ -15,32 +18,49 @@
 body {
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Microsoft YaHei',sans-serif;
   background:var(--bg); color:var(--text); line-height:1.5;
-  -webkit-font-smoothing:antialiased; display:flex; height:100vh; overflow:hidden;
+  -webkit-font-smoothing:antialiased; display:flex; flex-direction:column; height:100vh; overflow:hidden;
 }
 
-/* Sidebar */
-.side { width:60px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:4px; overflow-y:auto; }
-.side-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; transition:all .18s; color:var(--text3); flex-shrink:0; }
-.side-icon:hover { color:var(--text2); background:var(--surface3); }
-.side-icon.active { color:var(--lavender); background:rgba(184,169,212,.12); }
-.side-divider { width:24px; height:1px; background:var(--border); margin:6px 0; }
+/* ═══════════════════════════════════════════════════════════════
+   Top bar
+   ═══════════════════════════════════════════════════════════════ */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between; padding:10px 20px;
+  background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.topbar-left h1 { font-size:16px; font-weight:600; }
+.topbar-right { display:flex; align-items:center; gap:8px; }
 
-/* Main layout */
-.main { flex:1; display:flex; min-width:0; }
-.editor { width:420px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+/* Template picker */
+.tpl-group { display:flex; gap:2px; background:var(--surface2); border-radius:10px; padding:3px; }
+.tpl-btn { padding:5px 12px; border-radius:8px; border:none; background:transparent; color:var(--text2); cursor:pointer; font-size:12px; font-family:inherit; font-weight:500; transition:all .15s; white-space:nowrap; }
+.tpl-btn:hover { color:var(--text); }
+.tpl-btn.active { background:var(--surface3); color:var(--lavender); }
+
+/* Buttons */
+.btn { padding:7px 18px; border-radius:980px; font-size:13px; font-weight:500; cursor:pointer; border:none; font-family:inherit; transition:all .15s; }
+.btn-primary { background:var(--lavender); color:var(--bg); }
+.btn-primary:hover { opacity:.85; }
+.btn-ghost { background:var(--surface3); color:var(--text2); }
+.btn-ghost:hover { background:var(--border); }
+.btn-small { padding:4px 12px; font-size:12px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Main layout
+   ═══════════════════════════════════════════════════════════════ */
+.main { flex:1; display:flex; min-height:0; }
+.editor { width:460px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.editor-body { flex:1; overflow-y:auto; padding:16px 20px; }
+.editor-section { margin-bottom:28px; }
+.editor-section-title { font-size:14px; font-weight:600; color:var(--lavender); margin-bottom:12px; display:flex; align-items:center; gap:6px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.editor-section-title .sec-icon { font-size:16px; }
+
 .preview { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:28px; overflow-y:auto; background:var(--bg); }
 
-/* Editor header */
-.editor-hd { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-.editor-hd h2 { font-size:16px; font-weight:600; }
-.editor-actions { display:flex; gap:8px; }
-
-/* Editor body */
-.editor-body { flex:1; overflow-y:auto; padding:16px 20px; }
-.section { display:none; }
-.section.active { display:block; }
-
-/* Form elements */
+/* ═══════════════════════════════════════════════════════════════
+   Form elements
+   ═══════════════════════════════════════════════════════════════ */
 .field { margin-bottom:14px; }
 .field label { display:block; font-size:12px; font-weight:500; color:var(--text3); margin-bottom:4px; text-transform:uppercase; letter-spacing:.3px; }
 .field input, .field textarea, .field select {
@@ -53,90 +73,173 @@ body {
 .field-row { display:flex; gap:10px; }
 .field-row .field { flex:1; }
 
-/* List items */
 .list-item { background:var(--surface2); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; border:1px solid var(--border); position:relative; }
 .list-item .remove-btn { position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; background:var(--surface3); border:none; color:var(--text3); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
 .list-item .remove-btn:hover { background:var(--rose); color:#fff; }
 .add-btn { width:100%; padding:10px; border-radius:var(--radius-sm); border:1px dashed var(--border); background:transparent; color:var(--text3); cursor:pointer; font-size:13px; font-family:inherit; transition:all .15s; }
 .add-btn:hover { border-color:var(--lavender); color:var(--lavender); background:rgba(184,169,212,.06); }
 
-/* Buttons */
-.btn { padding:7px 18px; border-radius:980px; font-size:13px; font-weight:500; cursor:pointer; border:none; font-family:inherit; transition:all .15s; }
-.btn-primary { background:var(--lavender); color:var(--bg); }
-.btn-primary:hover { opacity:.85; }
-.btn-ghost { background:var(--surface3); color:var(--text2); }
-.btn-ghost:hover { background:var(--border); }
-.btn-small { padding:4px 12px; font-size:12px; }
-
-/* Resume preview (A4 style) */
-.resume-paper { width:794px; min-height:1123px; background:#fff; color:#222; padding:56px 64px; font-size:14px; line-height:1.7; box-shadow:0 4px 40px rgba(0,0,0,.5); border-radius:2px; }
+/* ═══════════════════════════════════════════════════════════════
+   Resume paper base
+   ═══════════════════════════════════════════════════════════════ */
+.resume-paper {
+  --rp-name-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-body-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-primary: #222;
+  --rp-text: #333;
+  --rp-sub: #666;
+  --rp-border: #333;
+  --rp-bg: #fff;
+  --rp-name-size: 26px;
+  --rp-padding: 56px 64px;
+  --rp-gap: 22px;
+  --rp-title-size: 15px;
+  width:794px; min-height:1123px; background:var(--rp-bg); color:var(--rp-text);
+  padding:var(--rp-padding); font-size:14px; line-height:1.7;
+  box-shadow:0 4px 40px rgba(0,0,0,.5); border-radius:2px;
+  font-family:var(--rp-body-font);
+  transition: all .3s ease;
+}
 .resume-paper .rp-header { text-align:center; margin-bottom:28px; }
-.resume-paper .rp-name { font-size:26px; font-weight:700; letter-spacing:1px; margin-bottom:6px; }
-.resume-paper .rp-contact { font-size:13px; color:#555; display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
-.resume-paper .rp-section { margin-bottom:22px; }
-.resume-paper .rp-section-title { font-size:15px; font-weight:700; border-bottom:2px solid #333; padding-bottom:4px; margin-bottom:10px; letter-spacing:1px; }
+.resume-paper .rp-name { font-size:var(--rp-name-size); font-weight:700; letter-spacing:1px; margin-bottom:6px; font-family:var(--rp-name-font); color:var(--rp-primary); }
+.resume-paper .rp-contact { font-size:13px; color:var(--rp-sub); display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
+.resume-paper .rp-section { margin-bottom:var(--rp-gap); }
+.resume-paper .rp-section-title { font-size:var(--rp-title-size); font-weight:700; color:var(--rp-primary); border-bottom:2px solid var(--rp-border); padding-bottom:4px; margin-bottom:10px; letter-spacing:1px; }
 .resume-paper .rp-item { margin-bottom:14px; }
 .resume-paper .rp-item-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
-.resume-paper .rp-item-title { font-weight:600; font-size:15px; }
-.resume-paper .rp-item-sub { color:#555; font-size:13px; }
+.resume-paper .rp-item-title { font-weight:600; font-size:15px; color:var(--rp-text); }
+.resume-paper .rp-item-sub { color:var(--rp-sub); font-size:13px; }
 .resume-paper .rp-item-date { color:#888; font-size:12px; white-space:nowrap; }
 .resume-paper .rp-item-desc { color:#444; font-size:13px; }
 .resume-paper .rp-tags { display:flex; flex-wrap:wrap; gap:6px; }
 .resume-paper .rp-tag { padding:2px 10px; background:#f0f0f0; border-radius:4px; font-size:12px; color:#555; }
-.resume-paper .rp-empty { color:#ccc; font-style:italic; }
-.resume-paper .rp-avatar { width:80px; height:100px; background:#eee; border-radius:4px; float:right; margin-left:20px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#aaa; }
 
-/* Print */
+/* ── Template: Classic (default) ─────────────────────────────── */
+.resume-paper.tpl-classic {
+  --rp-name-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-body-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-primary: #222;
+  --rp-text: #333;
+  --rp-sub: #666;
+  --rp-border: #333;
+  --rp-bg: #fff;
+  --rp-name-size: 26px;
+  --rp-padding: 56px 64px;
+  --rp-gap: 22px;
+  --rp-title-size: 15px;
+}
+
+/* ── Template: Modern ────────────────────────────────────────── */
+.resume-paper.tpl-modern {
+  --rp-name-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-body-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-primary: #2563eb;
+  --rp-text: #1e293b;
+  --rp-sub: #64748b;
+  --rp-border: #2563eb;
+  --rp-bg: #fff;
+  --rp-name-size: 28px;
+  --rp-padding: 48px 64px 56px 64px;
+  --rp-gap: 20px;
+  --rp-title-size: 14px;
+}
+.resume-paper.tpl-modern .rp-name { letter-spacing:2px; }
+.resume-paper.tpl-modern .rp-section-title { border-bottom:none; border-left:3px solid var(--rp-border); padding-left:10px; padding-bottom:0; }
+.resume-paper.tpl-modern .rp-tag { background:#eff6ff; color:#2563eb; border-radius:12px; padding:3px 12px; }
+
+/* ── Template: Minimal ───────────────────────────────────────── */
+.resume-paper.tpl-minimal {
+  --rp-name-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-body-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-primary: #000;
+  --rp-text: #444;
+  --rp-sub: #999;
+  --rp-border: #ddd;
+  --rp-bg: #fafafa;
+  --rp-name-size: 22px;
+  --rp-padding: 64px 80px;
+  --rp-gap: 28px;
+  --rp-title-size: 11px;
+}
+.resume-paper.tpl-minimal .rp-name { font-weight:400; letter-spacing:3px; text-transform:uppercase; }
+.resume-paper.tpl-minimal .rp-section-title { border-bottom:1px solid var(--rp-border); font-weight:400; letter-spacing:3px; text-transform:uppercase; }
+.resume-paper.tpl-minimal .rp-contact { font-size:11px; }
+.resume-paper.tpl-minimal .rp-item-title { font-weight:400; }
+.resume-paper.tpl-minimal .rp-item-sub { font-size:12px; color:#aaa; }
+.resume-paper.tpl-minimal .rp-tag { background:transparent; border:1px solid #e0e0e0; border-radius:2px; }
+
+/* ── Template: Compact ───────────────────────────────────────── */
+.resume-paper.tpl-compact {
+  --rp-name-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-body-font: 'PingFang SC','Microsoft YaHei',sans-serif;
+  --rp-primary: #111;
+  --rp-text: #222;
+  --rp-sub: #555;
+  --rp-border: #111;
+  --rp-bg: #fff;
+  --rp-name-size: 22px;
+  --rp-padding: 40px 48px;
+  --rp-gap: 14px;
+  --rp-title-size: 13px;
+  font-size:12.5px;
+  line-height:1.5;
+}
+.resume-paper.tpl-compact .rp-header { margin-bottom:18px; }
+.resume-paper.tpl-compact .rp-section-title { border-bottom-width:1px; padding-bottom:2px; margin-bottom:6px; }
+.resume-paper.tpl-compact .rp-item { margin-bottom:8px; }
+.resume-paper.tpl-compact .rp-item-title { font-size:13px; }
+.resume-paper.tpl-compact .rp-item-sub, .resume-paper.tpl-compact .rp-item-desc { font-size:11px; }
+.resume-paper.tpl-compact .rp-item-date { font-size:10px; }
+.resume-paper.tpl-compact .rp-tag { padding:1px 8px; font-size:10px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   Print
+   ═══════════════════════════════════════════════════════════════ */
 @media print {
   body { background:#fff; }
-  .side,.editor,.topbar { display:none !important; }
+  .editor,.topbar { display:none !important; }
   .preview { padding:0; overflow:visible; }
-  .resume-paper { box-shadow:none; width:100%; min-height:0; padding:40px 48px; border-radius:0; }
+  .resume-paper { box-shadow:none; width:100%; min-height:0; border-radius:0; }
+  .resume-paper.tpl-minimal { padding:40px 48px; }
+  .resume-paper.tpl-compact { padding:32px 40px; }
 }
 
 /* Toast */
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface2); color:var(--text); padding:10px 20px; border-radius:980px; font-size:13px; z-index:999; border:1px solid var(--border); box-shadow:0 4px 20px rgba(0,0,0,.4); animation:toastIn .3s ease; }
 @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(10px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
 
-@media (max-width:1200px) { .editor { width:360px; } .resume-paper { width:100%; } }
+@media (max-width:1200px) { .editor { width:380px; } .resume-paper { width:100%; } }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="side">
-  <div class="side-icon active" data-section="0" title="个人信息">👤</div>
-  <div class="side-icon" data-section="1" title="求职期望">🎯</div>
-  <div class="side-icon" data-section="2" title="个人优势">✨</div>
-  <div class="side-divider"></div>
-  <div class="side-icon" data-section="3" title="工作经历">💼</div>
-  <div class="side-icon" data-section="4" title="实习经历">📝</div>
-  <div class="side-icon" data-section="5" title="教育经历">🎓</div>
-  <div class="side-divider"></div>
-  <div class="side-icon" data-section="6" title="项目经历">🚀</div>
-  <div class="side-icon" data-section="7" title="社团经历">🤝</div>
-  <div class="side-icon" data-section="8" title="资格证书">📜</div>
-  <div class="side-icon" data-section="9" title="荣誉奖项">🏆</div>
-  <div class="side-icon" data-section="10" title="社交主页">🔗</div>
-</aside>
-
-<div class="main">
-<!-- Editor panel -->
-<div class="editor">
-  <div class="editor-hd">
-    <h2 id="section-title">个人信息</h2>
-    <div class="editor-actions">
-      <button class="btn btn-ghost btn-small" onclick="saveLocal()">保存</button>
-      <button class="btn btn-ghost btn-small" onclick="loadLocal()">加载</button>
-      <button class="btn btn-primary btn-small" onclick="printResume()">打印PDF</button>
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>简历生成器</h1>
+    <div class="tpl-group" id="tpl-group">
+      <button class="tpl-btn active" data-tpl="classic">经典</button>
+      <button class="tpl-btn" data-tpl="modern">现代</button>
+      <button class="tpl-btn" data-tpl="minimal">极简</button>
+      <button class="tpl-btn" data-tpl="compact">紧凑</button>
     </div>
   </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost btn-small" onclick="saveLocal()">保存</button>
+    <button class="btn btn-ghost btn-small" onclick="loadLocal()">加载</button>
+    <button class="btn btn-primary btn-small" onclick="printResume()">打印PDF</button>
+  </div>
+</div>
+
+<div class="main">
+<!-- Editor panel — single scrollable view -->
+<div class="editor">
   <div class="editor-body" id="editor-body"></div>
 </div>
 
 <!-- Preview panel -->
 <div class="preview">
-  <div class="resume-paper" id="resume-preview"></div>
+  <div class="resume-paper tpl-classic" id="resume-preview"></div>
 </div>
 </div>
 
@@ -158,22 +261,7 @@ var R = {
   socials: []
 };
 
-// ═══════════════════════════════════════════════════════════════
-//  Section definitions
-// ═══════════════════════════════════════════════════════════════
-var sections = [
-  { id:'info', title:'个人信息', icon:'👤' },
-  { id:'expectation', title:'求职期望', icon:'🎯' },
-  { id:'advantage', title:'个人优势', icon:'✨' },
-  { id:'workExps', title:'工作经历', icon:'💼' },
-  { id:'internships', title:'实习经历', icon:'📝' },
-  { id:'educations', title:'教育经历', icon:'🎓' },
-  { id:'projects', title:'项目经历', icon:'🚀' },
-  { id:'activities', title:'社团经历', icon:'🤝' },
-  { id:'certs', title:'资格证书', icon:'📜' },
-  { id:'awards', title:'荣誉奖项', icon:'🏆' },
-  { id:'socials', title:'社交主页', icon:'🔗' }
-];
+var currentTemplate = 'classic';
 
 // ═══════════════════════════════════════════════════════════════
 //  Form builders for each section
@@ -181,17 +269,17 @@ var sections = [
 function formInfo() {
   var d = R.info;
   return fld('姓名')+inp('info.name',d.name,'请输入姓名')+
-    frow(fld('生日')+inp('info.birthday',d.birthday,'date',1),fld('性别')+sel('info.gender',d.gender,['','男','女']))+
-    frow(fld('邮箱')+inp('info.email',d.email,'email','请输入邮箱'),fld('电话')+inp('info.phone',d.phone,'tel','请输入电话'))+
-    frow(fld('微信号')+inp('info.wechat',d.wechat,'','请输入微信号'),fld('籍贯')+inp('info.hometown',d.hometown,'','请输入籍贯'))+
-    frow(fld('政治面貌')+sel('info.political',d.political,['','群众','共青团员','共产党员','民主党派','无党派人士']),fld('参加工作时间')+inp('info.workStart',d.workStart,'month'));
+    frow(fld('生日')+inp('info.birthday',d.birthday,'','date'),fld('性别')+sel('info.gender',d.gender,['','男','女']))+
+    frow(fld('邮箱')+inp('info.email',d.email,'请输入邮箱','email'),fld('电话')+inp('info.phone',d.phone,'请输入电话','tel'))+
+    frow(fld('微信号')+inp('info.wechat',d.wechat,'请输入微信号'),fld('籍贯')+inp('info.hometown',d.hometown,'请输入籍贯'))+
+    frow(fld('政治面貌')+sel('info.political',d.political,['','群众','共青团员','共产党员','民主党派','无党派人士']),fld('参加工作时间')+inp('info.workStart',d.workStart,'','month'));
 }
 
 function formExpectation() {
   var d = R.expectation;
-  return fld('期望职位')+inp('expectation.position',d.position,'','请输入职位关键词')+
-    fld('期望城市')+inp('expectation.city',d.city,'','例如：杭州')+
-    fld('薪资要求')+inp('expectation.salary',d.salary,'','例如：15k-25k 或 面议');
+  return fld('期望职位')+inp('expectation.position',d.position,'请输入职位关键词')+
+    fld('期望城市')+inp('expectation.city',d.city,'例如：杭州')+
+    fld('薪资要求')+inp('expectation.salary',d.salary,'例如：15k-25k 或 面议');
 }
 
 function formAdvantage() {
@@ -207,14 +295,12 @@ function formCerts() { return formList('certs', R.certs, certTemplate); }
 function formAwards() { return formList('awards', R.awards, awardTemplate); }
 function formSocials() { return formList('socials', R.socials, socialTemplate); }
 
-var sectionForms = [formInfo, formExpectation, formAdvantage, formWorkExps, formInternships, formEducations, formProjects, formActivities, formCerts, formAwards, formSocials];
-
 // ═══════════════════════════════════════════════════════════════
 //  Item templates for list sections
 // ═══════════════════════════════════════════════════════════════
 function workExpTemplate(item, idx, prefix) {
   return frow(fld('公司名称')+inp(prefix+'.company',item.company||'','请输入公司名称'),fld('职位')+inp(prefix+'.position',item.position||'','请输入职位'))+
-    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','month'))+
+    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','','month'))+
     fld('工作内容')+txt(prefix+'.description',item.description||'','描述主要工作职责和内容')+
     fld('工作成果')+txt(prefix+'.achievements',item.achievements||'','量化成果，如业绩提升、项目成果');
 }
@@ -222,17 +308,17 @@ function internshipTemplate(item, idx, prefix) { return workExpTemplate(item, id
 function educationTemplate(item, idx, prefix) {
   return frow(fld('学校')+inp(prefix+'.school',item.school||'','请输入学校名称'),fld('专业')+inp(prefix+'.major',item.major||'','请输入专业'))+
     frow(fld('学历')+sel(prefix+'.degree',item.degree||'',['','大专','本科','硕士','博士','中专/中技','高中','初中及以下']),fld('')+'')+
-    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','month'));
+    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','','month'));
 }
 function projectTemplate(item, idx, prefix) {
   return frow(fld('项目名称')+inp(prefix+'.name',item.name||'','请输入项目名称'),fld('担任角色')+inp(prefix+'.role',item.role||'','请输入角色'))+
-    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','month'))+
+    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','','month'))+
     fld('项目描述')+txt(prefix+'.description',item.description||'','描述项目背景、目标、技术栈')+
     fld('项目成果')+txt(prefix+'.achievements',item.achievements||'','个人贡献和量化成果');
 }
 function activityTemplate(item, idx, prefix) {
   return frow(fld('组织名称')+inp(prefix+'.orgName',item.orgName||'','请输入组织名称'),fld('担任角色')+inp(prefix+'.role',item.role||'','请输入角色'))+
-    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','month'))+
+    frow(fld('开始时间')+inp(prefix+'.startDate',item.startDate||'','','month'),fld('结束时间')+inp(prefix+'.endDate',item.endDate||'','','month'))+
     fld('经历描述')+txt(prefix+'.description',item.description||'','描述活动内容和收获');
 }
 function certTemplate(item, idx, prefix) {
@@ -249,7 +335,7 @@ function socialTemplate(item, idx, prefix) {
 //  HTML helpers
 // ═══════════════════════════════════════════════════════════════
 function fld(l) { return '<div class="field"><label>'+l+'</label>'; }
-function inp(path, val, type, placeholder) {
+function inp(path, val, placeholder, type) {
   var t = type||'text';
   return '<input type="'+t+'" value="'+esc(val)+'" placeholder="'+(placeholder||'')+'" onchange="setVal(\''+path+'\',this.value)" oninput="setVal(\''+path+'\',this.value)"></div>';
 }
@@ -280,6 +366,23 @@ function formList(key, arr, templateFn) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  Section definitions
+// ═══════════════════════════════════════════════════════════════
+var sectionDefs = [
+  { form:formInfo, icon:'👤', title:'个人信息' },
+  { form:formExpectation, icon:'🎯', title:'求职期望' },
+  { form:formAdvantage, icon:'✨', title:'个人优势' },
+  { form:formWorkExps, icon:'💼', title:'工作经历' },
+  { form:formInternships, icon:'📝', title:'实习经历' },
+  { form:formEducations, icon:'🎓', title:'教育经历' },
+  { form:formProjects, icon:'🚀', title:'项目经历' },
+  { form:formActivities, icon:'🤝', title:'社团经历' },
+  { form:formCerts, icon:'📜', title:'资格证书' },
+  { form:formAwards, icon:'🏆', title:'荣誉奖项' },
+  { form:formSocials, icon:'🔗', title:'社交主页' }
+];
+
+// ═══════════════════════════════════════════════════════════════
 //  Data operations
 // ═══════════════════════════════════════════════════════════════
 function setVal(path, val) {
@@ -302,26 +405,28 @@ function addItem(key) {
     socials: {platform:'',url:''}
   };
   R[key].push(JSON.parse(JSON.stringify(templates[key])));
-  renderEditor(currentSection);
+  renderEditor();
   renderPreview();
 }
 
 function removeItem(key, idx) {
   R[key].splice(idx, 1);
-  renderEditor(currentSection);
+  renderEditor();
   renderPreview();
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Editor rendering
+//  Editor rendering — all sections in one view
 // ═══════════════════════════════════════════════════════════════
-var currentSection = 0;
-
-function renderEditor(idx) {
-  currentSection = idx;
-  document.getElementById('section-title').textContent = sections[idx].title;
-  document.getElementById('editor-body').innerHTML = sectionForms[idx]();
-  document.querySelectorAll('.side-icon').forEach(function(el,i){ el.classList.toggle('active', i===idx); });
+function renderEditor() {
+  var h = '';
+  sectionDefs.forEach(function(sec){
+    h += '<div class="editor-section">';
+    h += '<div class="editor-section-title"><span class="sec-icon">'+sec.icon+'</span> '+sec.title+'</div>';
+    h += sec.form();
+    h += '</div>';
+  });
+  document.getElementById('editor-body').innerHTML = h;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -333,7 +438,7 @@ function renderPreview() {
 
   var h = '<div class="rp-header">';
   h += '<div class="rp-name">'+ (i.name||'姓名') +'</div>';
-  if (e.position) h += '<div style="font-size:15px;color:#555;margin-bottom:4px">求职意向：'+e.position+' | '+e.city+' | '+e.salary+'</div>';
+  if (e.position) h += '<div style="font-size:15px;color:var(--rp-sub);margin-bottom:4px">求职意向：'+e.position+' | '+e.city+' | '+e.salary+'</div>';
   h += '<div class="rp-contact">'+contact+'</div>';
   if (i.birthday || i.gender || i.political) h += '<div class="rp-contact" style="margin-top:2px">'+[i.gender,i.birthday,i.political].filter(Boolean).join(' · ')+'</div>';
   h += '</div>';
@@ -348,10 +453,10 @@ function renderPreview() {
   if (R.workExps.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">工作经历</div>';
     R.workExps.forEach(function(w){
-      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+w.company+'</span><span class="rp-item-date">'+w.startDate+' — '+(w.endDate||'至今')+'</span></div>';
-      h += '<div class="rp-item-sub">'+w.position+'</div>';
-      if (w.description) h += '<div class="rp-item-desc">'+w.description+'</div>';
-      if (w.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+w.achievements+'</div>';
+      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+esc(w.company)+'</span><span class="rp-item-date">'+esc(w.startDate)+' — '+(esc(w.endDate)||'至今')+'</span></div>';
+      h += '<div class="rp-item-sub">'+esc(w.position)+'</div>';
+      if (w.description) h += '<div class="rp-item-desc">'+esc(w.description)+'</div>';
+      if (w.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+esc(w.achievements)+'</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -361,10 +466,10 @@ function renderPreview() {
   if (R.internships.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">实习经历</div>';
     R.internships.forEach(function(w){
-      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+w.company+'</span><span class="rp-item-date">'+w.startDate+' — '+(w.endDate||'至今')+'</span></div>';
-      h += '<div class="rp-item-sub">'+w.position+'</div>';
-      if (w.description) h += '<div class="rp-item-desc">'+w.description+'</div>';
-      if (w.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+w.achievements+'</div>';
+      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+esc(w.company)+'</span><span class="rp-item-date">'+esc(w.startDate)+' — '+(esc(w.endDate)||'至今')+'</span></div>';
+      h += '<div class="rp-item-sub">'+esc(w.position)+'</div>';
+      if (w.description) h += '<div class="rp-item-desc">'+esc(w.description)+'</div>';
+      if (w.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+esc(w.achievements)+'</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -374,10 +479,10 @@ function renderPreview() {
   if (R.projects.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">项目经历</div>';
     R.projects.forEach(function(p){
-      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+p.name+'</span><span class="rp-item-date">'+p.startDate+' — '+p.endDate+'</span></div>';
-      if (p.role) h += '<div class="rp-item-sub">'+p.role+'</div>';
-      if (p.description) h += '<div class="rp-item-desc">'+p.description+'</div>';
-      if (p.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+p.achievements+'</div>';
+      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+esc(p.name)+'</span><span class="rp-item-date">'+esc(p.startDate)+' — '+esc(p.endDate)+'</span></div>';
+      if (p.role) h += '<div class="rp-item-sub">'+esc(p.role)+'</div>';
+      if (p.description) h += '<div class="rp-item-desc">'+esc(p.description)+'</div>';
+      if (p.achievements) h += '<div class="rp-item-desc" style="margin-top:4px">🏆 '+esc(p.achievements)+'</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -387,8 +492,8 @@ function renderPreview() {
   if (R.educations.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">教育经历</div>';
     R.educations.forEach(function(ed){
-      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+ed.school+'</span><span class="rp-item-date">'+ed.startDate+' — '+ed.endDate+'</span></div>';
-      h += '<div class="rp-item-sub">'+ed.major + (ed.degree?' · '+ed.degree:'')+'</div>';
+      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+esc(ed.school)+'</span><span class="rp-item-date">'+esc(ed.startDate)+' — '+esc(ed.endDate)+'</span></div>';
+      h += '<div class="rp-item-sub">'+esc(ed.major) + (ed.degree?' · '+ed.degree:'')+'</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -398,9 +503,9 @@ function renderPreview() {
   if (R.activities.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">社团经历</div>';
     R.activities.forEach(function(a){
-      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+a.orgName+'</span><span class="rp-item-date">'+a.startDate+' — '+a.endDate+'</span></div>';
-      if (a.role) h += '<div class="rp-item-sub">'+a.role+'</div>';
-      if (a.description) h += '<div class="rp-item-desc">'+a.description+'</div>';
+      h += '<div class="rp-item"><div class="rp-item-hd"><span class="rp-item-title">'+esc(a.orgName)+'</span><span class="rp-item-date">'+esc(a.startDate)+' — '+esc(a.endDate)+'</span></div>';
+      if (a.role) h += '<div class="rp-item-sub">'+esc(a.role)+'</div>';
+      if (a.description) h += '<div class="rp-item-desc">'+esc(a.description)+'</div>';
       h += '</div>';
     });
     h += '</div>';
@@ -413,7 +518,7 @@ function renderPreview() {
   if (allTags.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">技能证书 & 荣誉</div>';
     h += '<div class="rp-tags">';
-    allTags.forEach(function(t){ h += '<span class="rp-tag">'+t+'</span>'; });
+    allTags.forEach(function(t){ h += '<span class="rp-tag">'+esc(t)+'</span>'; });
     h += '</div></div>';
   }
 
@@ -421,12 +526,25 @@ function renderPreview() {
   if (R.socials.length > 0) {
     h += '<div class="rp-section"><div class="rp-section-title">社交主页</div>';
     R.socials.forEach(function(s){
-      if (s.url) h += '<div class="rp-item-desc">🔗 '+s.platform+': '+s.url+'</div>';
+      if (s.url) h += '<div class="rp-item-desc">🔗 '+esc(s.platform)+': '+esc(s.url)+'</div>';
     });
     h += '</div>';
   }
 
   document.getElementById('resume-preview').innerHTML = h;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Template switching
+// ═══════════════════════════════════════════════════════════════
+function setTemplate(tpl) {
+  currentTemplate = tpl;
+  var paper = document.getElementById('resume-preview');
+  paper.className = 'resume-paper tpl-'+tpl;
+  document.querySelectorAll('.tpl-btn').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.tpl === tpl);
+  });
+  localStorage.setItem('auto_offer_template', tpl);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -442,7 +560,7 @@ function loadLocal() {
     try {
       var saved = JSON.parse(raw);
       Object.keys(saved).forEach(function(k){ if (R.hasOwnProperty(k)) R[k] = saved[k]; });
-      renderEditor(currentSection);
+      renderEditor();
       renderPreview();
       toast('简历已加载');
     } catch(e) { toast('加载失败'); }
@@ -457,11 +575,18 @@ function toast(msg) {
 // ═══════════════════════════════════════════════════════════════
 //  Init
 // ═══════════════════════════════════════════════════════════════
-document.querySelector('.side').addEventListener('click', function(e){
-  var el = e.target.closest('.side-icon');
-  if (!el) return;
-  renderEditor(parseInt(el.dataset.section));
+// Template switching
+document.getElementById('tpl-group').addEventListener('click', function(e){
+  var btn = e.target.closest('.tpl-btn');
+  if (!btn) return;
+  setTemplate(btn.dataset.tpl);
 });
+
+// Restore saved template
+var savedTpl = localStorage.getItem('auto_offer_template');
+if (savedTpl && ['classic','modern','minimal','compact'].indexOf(savedTpl) >= 0) {
+  setTemplate(savedTpl);
+}
 
 // Auto-load saved resume
 var saved = localStorage.getItem('auto_offer_resume');
@@ -472,7 +597,7 @@ if (saved) {
   } catch(e) {}
 }
 
-renderEditor(0);
+renderEditor();
 renderPreview();
 </script>
 </body>
