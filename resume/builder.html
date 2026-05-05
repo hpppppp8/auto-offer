@@ -183,6 +183,47 @@ body {
 .resume-paper.tpl-compact .rp-cp-sec::after { content:''; display:table; clear:both; }
 
 /* ═══════════════════════════════════════════════════════════════
+   Template: Curve Blue — 弧形蓝顶栏
+   Curved blue header, avatar left, diamond contact separators
+   ═══════════════════════════════════════════════════════════════ */
+.resume-paper.tpl-curve { padding:0; overflow:hidden; background:#fff; color:#444; }
+.resume-paper.tpl-curve .rp-cv-header {
+  background:linear-gradient(180deg, #4a90d9 0%, #5b9ee0 40%, #6dace7 100%);
+  padding:40px 48px 60px 48px;
+  position:relative;
+  border-radius:0 0 60% 60% / 0 0 40px 40px;
+  margin-bottom:20px;
+  min-height:160px;
+}
+.resume-paper.tpl-curve .rp-cv-header-inner { display:flex; align-items:center; gap:24px; }
+.resume-paper.tpl-curve .rp-cv-avatar {
+  width:72px; height:72px; border-radius:50%;
+  background:rgba(255,255,255,.2);
+  border:3px solid rgba(255,255,255,.35);
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:32px; color:#fff;
+}
+.resume-paper.tpl-curve .rp-cv-header-text { flex:1; }
+.resume-paper.tpl-curve .rp-cv-name { font-size:26px; font-weight:700; color:#fff; letter-spacing:2px; }
+.resume-paper.tpl-curve .rp-cv-job { font-size:14px; color:rgba(255,255,255,.85); margin-top:4px; }
+.resume-paper.tpl-curve .rp-cv-body { padding:0 48px 40px 48px; }
+.resume-paper.tpl-curve .rp-cv-contact { font-size:13px; color:#888; display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:28px; }
+.resume-paper.tpl-curve .rp-cv-contact span::before { content:'◆'; font-size:6px; position:relative; top:-2px; margin-right:6px; color:#ccc; }
+.resume-paper.tpl-curve .rp-cv-contact span:first-child::before { display:none; }
+.resume-paper.tpl-curve .rp-cv-sec { margin-bottom:22px; }
+.resume-paper.tpl-curve .rp-cv-sec-title { font-size:15px; font-weight:700; color:#3a7cc3; border-bottom:1px solid #e8e8e8; padding-bottom:6px; margin-bottom:12px; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+.resume-paper.tpl-curve .rp-cv-sec-title .sec-decor { font-size:16px; }
+.resume-paper.tpl-curve .rp-cv-item { margin-bottom:12px; }
+.resume-paper.tpl-curve .rp-cv-item-hd { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+.resume-paper.tpl-curve .rp-cv-item-title { font-weight:600; font-size:14px; color:#333; }
+.resume-paper.tpl-curve .rp-cv-item-sub { color:#777; font-size:12.5px; }
+.resume-paper.tpl-curve .rp-cv-item-date { color:#aaa; font-size:12px; white-space:nowrap; }
+.resume-paper.tpl-curve .rp-cv-item-desc { color:#666; font-size:13px; margin-top:3px; }
+.resume-paper.tpl-curve .rp-cv-tags { display:flex; flex-wrap:wrap; gap:8px; }
+.resume-paper.tpl-curve .rp-cv-tag { padding:3px 12px; background:#e8f4fd; color:#3a7cc3; border-radius:4px; font-size:12px; border:1px solid #d0e8f8; }
+
+/* ═══════════════════════════════════════════════════════════════
    Print
    ═══════════════════════════════════════════════════════════════ */
 @media print {
@@ -192,6 +233,9 @@ body {
   .resume-paper { box-shadow:none; width:100%; min-height:0; border-radius:0; }
   .resume-paper.tpl-minimal { padding:40px 60px; }
   .resume-paper.tpl-compact { padding:28px 36px; }
+  .resume-paper.tpl-curve { border-radius:0; }
+  .resume-paper.tpl-curve .rp-cv-body { padding:0 40px 32px 40px; }
+  .resume-paper.tpl-curve .rp-cv-header { border-radius:0 0 40% 40% / 0 0 30px 30px; }
 }
 
 /* Toast */
@@ -212,6 +256,7 @@ body {
       <button class="tpl-btn" data-tpl="modern">现代</button>
       <button class="tpl-btn" data-tpl="minimal">极简</button>
       <button class="tpl-btn" data-tpl="compact">紧凑</button>
+      <button class="tpl-btn" data-tpl="curve">弧形蓝</button>
     </div>
   </div>
   <div class="topbar-right">
@@ -648,6 +693,49 @@ function secCompactItems(p, arr, fn) {
   return h;
 }
 
+function renderCurve() {
+  var i = R.info, e = R.expectation, p = 'rp-cv';
+  var contactItems = [i.email, i.phone, i.wechat, i.hometown].filter(Boolean);
+  var extraInfo = [i.gender, i.birthday, i.political].filter(Boolean).join(' · ');
+
+  // Header with avatar + curved blue background
+  var h = '<div class="'+p+'-header"><div class="'+p+'-header-inner">';
+  h += '<div class="'+p+'-avatar">'+(i.avatar||'👤')+'</div>';
+  h += '<div class="'+p+'-header-text">';
+  h += '<div class="'+p+'-name">'+(i.name||'姓名')+'</div>';
+  if (e.position) h += '<div class="'+p+'-job">'+esc(e.position)+(e.city?' · '+esc(e.city):'')+(e.salary?' · '+esc(e.salary):'')+'</div>';
+  h += '</div></div></div>';
+
+  // Body
+  h += '<div class="'+p+'-body">';
+
+  // Contact row with diamond separators
+  var allContact = contactItems.slice();
+  if (extraInfo) allContact.push(extraInfo);
+  if (allContact.length) {
+    h += '<div class="'+p+'-contact">';
+    allContact.forEach(function(c){ h += '<span>'+esc(c)+'</span>'; });
+    h += '</div>';
+  }
+
+  // Self-assessment
+  if (R.advantage) {
+    h += '<div class="'+p+'-sec"><div class="'+p+'-sec-title"><span class="sec-decor">✦</span> 个人优势</div>';
+    h += '<div class="'+p+'-item-desc">'+R.advantage.replace(/\n/g,'<br>')+'</div></div>';
+  }
+
+  h += secWorkExp(p, '工作经历', '◆', R.workExps);
+  h += secWorkExp(p, '实习经历', '◇', R.internships);
+  h += secProjects(p, '项目经历', '▲', R.projects);
+  h += secEducation(p, '教育经历', '△', R.educations);
+  h += secActivities(p, '社团经历', '○', R.activities);
+  h += secTags(p, '技能证书 & 荣誉', '★', R.certs, R.awards);
+  h += secSocials(p, '社交主页', '●', R.socials);
+  h += '</div>';
+
+  document.getElementById('resume-preview').innerHTML = h;
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  Preview dispatcher
 // ═══════════════════════════════════════════════════════════════
@@ -656,6 +744,7 @@ function renderPreview() {
     case 'modern': renderModern(); break;
     case 'minimal': renderMinimal(); break;
     case 'compact': renderCompact(); break;
+    case 'curve': renderCurve(); break;
     default: renderClassic();
   }
 }
@@ -705,7 +794,7 @@ document.getElementById('tpl-group').addEventListener('click', function(e){
 });
 
 var savedTpl = localStorage.getItem('auto_offer_template');
-if (savedTpl && ['classic','modern','minimal','compact'].indexOf(savedTpl) >= 0) {
+if (savedTpl && ['classic','modern','minimal','compact','curve'].indexOf(savedTpl) >= 0) {
   setTemplate(savedTpl);
 }
 
