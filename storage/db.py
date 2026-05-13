@@ -7,7 +7,7 @@ from storage.cleaner import clean_salary
 
 
 def get_db_url():
-    return os.environ.get('DATABASE_URL', 'sqlite:///jobs.db')
+    return os.environ.get('DATABASE_URL', 'postgresql://hppppp@localhost:5432/auto_offer')
 
 
 def get_engine():
