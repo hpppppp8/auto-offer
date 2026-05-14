@@ -63,6 +63,7 @@ export default function OmniVoiceChatPage() {
   const playNext = useCallback(() => {
     if (queueRef.current.length === 0) {
       playingRef.current = false;
+      setIsAiSpeaking(false);
       return;
     }
     playingRef.current = true;
@@ -149,10 +150,7 @@ export default function OmniVoiceChatPage() {
               handlePcmChunk(msg.data);
               break;
             case 'response_done':
-              setIsAiSpeaking(false);
-              sourceRef.current?.stop();
-              queueRef.current.length = 0;
-              playingRef.current = false;
+              // Let audio play out naturally — playNext clears isAiSpeaking when queue drains
               const finalText = aiTextRef.current.trim();
               if (finalText && finalText !== lastCommittedRef.current) {
                 lastCommittedRef.current = finalText;
@@ -351,6 +349,7 @@ export default function OmniVoiceChatPage() {
         onAudioData={sendAudio}
         onSpeechStart={() => {}}
         onSpeechEnd={() => {}}
+        hideButton
       />
     </div>
   );

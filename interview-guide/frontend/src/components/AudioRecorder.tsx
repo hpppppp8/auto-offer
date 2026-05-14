@@ -21,8 +21,9 @@ interface AudioRecorderProps {
   isRecording: boolean;
   onRecordingChange: (isRecording: boolean) => void;
   onAudioData: (audioData: string) => void;
-  onSpeechStart?: () => void;  // ✅ VAD callback
-  onSpeechEnd?: () => void;    // ✅ VAD callback
+  onSpeechStart?: () => void;
+  onSpeechEnd?: () => void;
+  hideButton?: boolean;
 }
 
 export default function AudioRecorder({
@@ -31,6 +32,7 @@ export default function AudioRecorder({
   onAudioData,
   onSpeechStart,
   onSpeechEnd,
+  hideButton,
 }: AudioRecorderProps) {
   const [volume, setVolume] = useState(0);
   const mediaRecorderRef = useRef<{ stop: () => void; stream: MediaStream } | null>(null);
@@ -231,12 +233,16 @@ export default function AudioRecorder({
     };
   }, []);
 
-  const toggleRecording = () => {
+  useEffect(() => {
     if (isRecording) {
-      stopRecording();
-    } else {
       startRecording();
+    } else {
+      stopRecording();
     }
+  }, [isRecording]);
+
+  const toggleRecording = () => {
+    onRecordingChange(!isRecording);
   };
 
   return (
@@ -253,25 +259,27 @@ export default function AudioRecorder({
         />
       )}
 
-      {/* Record button */}
-      <button
-        onClick={toggleRecording}
-        className={`
-          relative z-10 w-16 h-16 rounded-full flex items-center justify-center
-          transition-all duration-300 shadow-xl
-          ${isRecording
-            ? 'bg-primary-500 hover:bg-primary-600 shadow-primary-500/40'
-            : 'bg-slate-700 hover:bg-slate-600 shadow-slate-900/50'
-          }
-        `}
-        title={isRecording ? '停止录音' : '开始说话'}
-      >
-        {isRecording ? (
-          <Mic className="w-7 h-7 text-white" />
-        ) : (
-          <MicOff className="w-7 h-7 text-slate-300" />
-        )}
-      </button>
+      {/* Record button (hidden when controlled externally) */}
+      {!hideButton && (
+        <button
+          onClick={toggleRecording}
+          className={`
+            relative z-10 w-16 h-16 rounded-full flex items-center justify-center
+            transition-all duration-300 shadow-xl
+            ${isRecording
+              ? 'bg-primary-500 hover:bg-primary-600 shadow-primary-500/40'
+              : 'bg-slate-700 hover:bg-slate-600 shadow-slate-900/50'
+            }
+          `}
+          title={isRecording ? '停止录音' : '开始说话'}
+        >
+          {isRecording ? (
+            <Mic className="w-7 h-7 text-white" />
+          ) : (
+            <MicOff className="w-7 h-7 text-slate-300" />
+          )}
+        </button>
+      )}
     </div>
   );
 }

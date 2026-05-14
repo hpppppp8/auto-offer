@@ -156,7 +156,7 @@ public class VoiceInterviewProperties {
         private String model = "qwen3-omni-flash-realtime";
         private String apiKey;
         private String voice = "Cherry";
-        private int silenceDurationMs = 800;
+        private int silenceDurationMs = 1200;
     }
 
     @Data
