@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PhoneOff, Bot, Mic, ArrowLeft } from 'lucide-react';
+import { PhoneOff, Bot, Mic, ArrowLeft, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioRecorder from '../components/AudioRecorder';
 import { voiceInterviewApi } from '../api/voiceInterview';
@@ -220,6 +220,16 @@ export default function OmniVoiceChatPage() {
     setIsRecording(prev => !prev);
   }, []);
 
+  const interruptAi = useCallback(() => {
+    // Stop local AI audio playback without affecting recording state.
+    // server_vad handles the actual response cancellation on the Omni side.
+    sourceRef.current?.stop();
+    queueRef.current.length = 0;
+    playingRef.current = false;
+    setIsAiSpeaking(false);
+    responseEndedRef.current = true;
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -328,7 +338,7 @@ export default function OmniVoiceChatPage() {
           <PhoneOff className="w-5 h-5" />
         </button>
 
-        {/* Mic button */}
+        {/* Mic button — recording toggle only */}
         <button
           onClick={handleMicToggle}
           disabled={connectionStatus !== 'connected'}
@@ -337,14 +347,20 @@ export default function OmniVoiceChatPage() {
               ? 'bg-indigo-600 shadow-lg shadow-indigo-500/40 text-white scale-110'
               : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
           } disabled:opacity-40 disabled:cursor-not-allowed`}
-          title={isAiSpeaking ? '点击打断 AI 回复' : '点击开始/停止录音'}
+          title={isRecording ? '停止录音' : '开始录音'}
         >
           <Mic className={`w-6 h-6 ${isRecording ? 'animate-pulse' : ''}`} />
         </button>
 
-        {/* Interrupt hint */}
+        {/* Interrupt button — only visible when AI is speaking */}
         {isAiSpeaking && (
-          <span className="text-xs text-amber-400 animate-pulse">点击麦克风打断</span>
+          <button
+            onClick={interruptAi}
+            className="p-5 rounded-full bg-amber-600/80 border border-amber-500/50 text-white hover:bg-amber-500 transition-all shadow-lg shadow-amber-500/30"
+            title="打断 AI（不停止录音）"
+          >
+            <VolumeX className="w-6 h-6" />
+          </button>
         )}
       </div>
 
