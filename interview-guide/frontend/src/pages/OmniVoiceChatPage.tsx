@@ -41,6 +41,10 @@ export default function OmniVoiceChatPage() {
   // When a new response's first audio chunk arrives after response_done,
   // the previous response was interrupted → clear stale audio.
   const responseEndedRef = useRef(false);
+  // Monotonic counter bumped on every interrupt / new-response.
+  // playNext captures the generation and stops the chain when it changes
+  // (prevents stale onended callbacks from playing old-audio chunks).
+  const generationRef = useRef(0);
 
   useEffect(() => { aiTextRef.current = aiText; }, [aiText]);
   useEffect(() => { isAiSpeakingRef.current = isAiSpeaking; }, [isAiSpeaking]);
@@ -70,6 +74,7 @@ export default function OmniVoiceChatPage() {
       setIsAiSpeaking(false);
       return;
     }
+    const gen = generationRef.current;
     playingRef.current = true;
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') ctx.resume();
@@ -80,7 +85,10 @@ export default function OmniVoiceChatPage() {
     sourceRef.current = source;
     source.onended = () => {
       sourceRef.current = null;
-      playNext();
+      // Only continue if no interrupt / new-response happened in the meantime
+      if (generationRef.current === gen) {
+        playNext();
+      }
     };
     source.start(0);
   }, [getAudioCtx]);
@@ -91,6 +99,7 @@ export default function OmniVoiceChatPage() {
       // Clear stale audio before queuing the new response's audio.
       if (responseEndedRef.current) {
         responseEndedRef.current = false;
+        generationRef.current += 1; // kill stale onended chain
         sourceRef.current?.stop();
         queueRef.current.length = 0;
         playingRef.current = false;
@@ -223,6 +232,7 @@ export default function OmniVoiceChatPage() {
   const interruptAi = useCallback(() => {
     // Stop local AI audio playback without affecting recording state.
     // server_vad handles the actual response cancellation on the Omni side.
+    generationRef.current += 1; // kill stale onended chain
     sourceRef.current?.stop();
     queueRef.current.length = 0;
     playingRef.current = false;
