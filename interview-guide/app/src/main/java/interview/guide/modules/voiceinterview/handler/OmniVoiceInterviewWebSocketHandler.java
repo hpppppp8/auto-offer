@@ -166,7 +166,11 @@ public class OmniVoiceInterviewWebSocketHandler extends TextWebSocketHandler {
         case "control" -> {
           String action = msg.has("action") ? msg.get("action").asText() : "";
           switch (action) {
-            case "interrupt" -> omniVoiceService.interrupt(sessionId);
+            case "interrupt" -> {
+              // server_vad handles turn detection & interruption automatically;
+              // client-triggered interrupt is no longer needed.
+              log.debug("[OmniWS:{}] Client interrupt ignored (server_vad active)", sessionId);
+            }
             case "end_interview" -> closeSession(sessionId, session);
             default -> log.warn("[OmniWS:{}] Unknown control action: {}", sessionId, action);
           }
@@ -262,8 +266,7 @@ public class OmniVoiceInterviewWebSocketHandler extends TextWebSocketHandler {
         你是一位友好、乐于助人的AI语音助手。
         要求：
         - 用中文进行自然流畅的对话
-        - 像真人朋友一样聊天，热情但简洁
-        - 每次回复控制在2-3句话，不要过长
+        - 像真人朋友一样聊天，热情但简洁自然
         - 称呼对方为"你"
         - 对话开始请简单打个招呼
         """;

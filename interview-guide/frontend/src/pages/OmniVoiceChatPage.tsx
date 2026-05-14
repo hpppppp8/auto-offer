@@ -37,6 +37,10 @@ export default function OmniVoiceChatPage() {
   const playingRef = useRef(false);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
   const lastCommittedRef = useRef('');
+  // Tracks whether response_done arrived before all queued audio finished.
+  // When a new response's first audio chunk arrives after response_done,
+  // the previous response was interrupted → clear stale audio.
+  const responseEndedRef = useRef(false);
 
   useEffect(() => { aiTextRef.current = aiText; }, [aiText]);
   useEffect(() => { isAiSpeakingRef.current = isAiSpeaking; }, [isAiSpeaking]);
@@ -63,6 +67,7 @@ export default function OmniVoiceChatPage() {
   const playNext = useCallback(() => {
     if (queueRef.current.length === 0) {
       playingRef.current = false;
+      setIsAiSpeaking(false);
       return;
     }
     playingRef.current = true;
@@ -82,6 +87,15 @@ export default function OmniVoiceChatPage() {
 
   const handlePcmChunk = useCallback((base64Pcm: string) => {
     try {
+      // New response after previous response_done → old response was interrupted.
+      // Clear stale audio before queuing the new response's audio.
+      if (responseEndedRef.current) {
+        responseEndedRef.current = false;
+        sourceRef.current?.stop();
+        queueRef.current.length = 0;
+        playingRef.current = false;
+      }
+
       const binary = atob(base64Pcm);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -149,11 +163,10 @@ export default function OmniVoiceChatPage() {
               handlePcmChunk(msg.data);
               break;
             case 'response_done':
-              // Server VAD handles interruption — clear leftover audio to prevent overlap
-              setIsAiSpeaking(false);
-              sourceRef.current?.stop();
-              queueRef.current.length = 0;
-              playingRef.current = false;
+              // Mark that the current response ended. If a new audio chunk arrives
+              // before the queue drains (handlePcmChunk), it means interruption → stale
+              // audio is cleared there. Otherwise audio plays to completion naturally.
+              responseEndedRef.current = true;
               const finalText = aiTextRef.current.trim();
               if (finalText && finalText !== lastCommittedRef.current) {
                 lastCommittedRef.current = finalText;
