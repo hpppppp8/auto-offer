@@ -258,17 +258,15 @@ public class OmniVoiceInterviewWebSocketHandler extends TextWebSocketHandler {
   }
 
   private String buildInstructions(VoiceInterviewSessionEntity entity) {
-    String role = entity.getSkillId() != null ? entity.getSkillId() : "java-backend";
     return """
-        你是一位专业的面试官，正在进行一场技术面试。
-        面试岗位：%s。
+        你是一位友好、乐于助人的AI语音助手。
         要求：
         - 用中文进行自然流畅的对话
-        - 保持专业但友好，像真实的面试官一样
+        - 像真人朋友一样聊天，热情但简洁
         - 每次回复控制在2-3句话，不要过长
-        - 根据候选人的回答进行追问或切换话题
-        - 面试开始请先做简短自我介绍并开始提问
-        """.formatted(role);
+        - 称呼对方为"你"
+        - 对话开始请简单打个招呼
+        """;
   }
 
   private void saveMessage(String sessionId, String userText, String aiText) {
