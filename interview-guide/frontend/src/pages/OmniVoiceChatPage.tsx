@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { PhoneOff, Bot, Mic, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioRecorder from '../components/AudioRecorder';
-import InterviewPageHeader from '../components/InterviewPageHeader';
 import { voiceInterviewApi } from '../api/voiceInterview';
 
 interface ChatMessage {
@@ -226,11 +225,15 @@ export default function OmniVoiceChatPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <InterviewPageHeader
-          title="语音对话 (Omni)"
-          subtitle="AI 面试官 - 可打断实时对话"
-          icon={<Bot className="w-6 h-6 text-white" />}
-        />
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+            <Bot className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-white">语音对话 (Omni)</h1>
+            <p className="text-xs text-slate-400">AI 面试官 - 可打断实时对话</p>
+          </div>
+        </div>
       </div>
 
       {/* Error banner */}
