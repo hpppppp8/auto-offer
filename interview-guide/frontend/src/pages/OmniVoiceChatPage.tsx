@@ -63,7 +63,6 @@ export default function OmniVoiceChatPage() {
   const playNext = useCallback(() => {
     if (queueRef.current.length === 0) {
       playingRef.current = false;
-      setIsAiSpeaking(false);
       return;
     }
     playingRef.current = true;
@@ -150,7 +149,11 @@ export default function OmniVoiceChatPage() {
               handlePcmChunk(msg.data);
               break;
             case 'response_done':
-              // Let audio play out naturally — playNext clears isAiSpeaking when queue drains
+              // Server VAD handles interruption — clear leftover audio to prevent overlap
+              setIsAiSpeaking(false);
+              sourceRef.current?.stop();
+              queueRef.current.length = 0;
+              playingRef.current = false;
               const finalText = aiTextRef.current.trim();
               if (finalText && finalText !== lastCommittedRef.current) {
                 lastCommittedRef.current = finalText;
@@ -188,17 +191,7 @@ export default function OmniVoiceChatPage() {
   // ---- User actions ----
   const sendAudio = useCallback((audioData: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      const msg = JSON.stringify({ type: 'audio', data: audioData, timestamp: Date.now() });
-      wsRef.current.send(msg);
-
-      if (isAiSpeakingRef.current) {
-        // Interrupt: user speaks while AI is talking
-        wsRef.current.send(JSON.stringify({ type: 'control', action: 'interrupt' }));
-        sourceRef.current?.stop();
-        queueRef.current.length = 0;
-        playingRef.current = false;
-        setIsAiSpeaking(false);
-      }
+      wsRef.current.send(JSON.stringify({ type: 'audio', data: audioData, timestamp: Date.now() }));
     }
   }, []);
 
